@@ -1,0 +1,155 @@
+@inject IJSRuntime JSRuntime
+@inject ISnackbar Snackbar
+
+<MudPaper Outlined="true"
+          Class="pa-3">
+    @if (HasSavedSignature)
+    {
+        <div class="saved-signature">
+            <MudChip T="string"
+                     Size="Size.Small"
+                     Color="Color.Success"
+                     Icon="@Icons.Material.Filled.Verified">
+                Đã ký
+            </MudChip>
+
+            <img src="@ExistingSignatureUrl"
+                 alt="Chữ ký đã lưu"
+                 class="saved-signature-image" />
+
+            @if (!string.IsNullOrWhiteSpace(SignerName))
+            {
+                <MudText Typo="Typo.body2">
+                    Người ký: <b>@SignerName</b>
+                </MudText>
+            }
+
+            @if (SignedAt.HasValue)
+            {
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    Xác nhận lúc @SignedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                </MudText>
+            }
+        </div>
+    }
+    else
+    {
+        <canvas id="@CanvasId"
+                class="signature-surface">
+        </canvas>
+
+        <MudStack Row="true"
+                  Spacing="2"
+                  Class="mt-3">
+
+            <MudButton ButtonType="ButtonType.Button"
+                       Variant="Variant.Outlined"
+                       Color="Color.Default"
+                       StartIcon="@Icons.Material.Filled.Delete"
+                       Disabled="@(Disabled || _saving)"
+                       OnClick="ClearAsync">
+                Xóa chữ ký
+            </MudButton>
+
+            <MudButton ButtonType="ButtonType.Button"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Check"
+                       Disabled="@(Disabled || _saving)"
+                       OnClick="SaveAsync">
+
+                @if (_saving)
+                {
+                    <MudProgressCircular Indeterminate="true"
+                                         Size="Size.Small"
+                                         Class="mr-2" />
+                }
+
+                @(_saving ? "Đang lưu..." : "Xác nhận chữ ký")
+            </MudButton>
+
+        </MudStack>
+    }
+</MudPaper>
+
+@code {
+    private readonly string CanvasId =
+        $"signature-{Guid.NewGuid():N}";
+
+    private bool _saving;
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public string? ExistingSignatureUrl { get; set; }
+
+    [Parameter]
+    public string? SignerName { get; set; }
+
+    [Parameter]
+    public DateTime? SignedAt { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnSignatureSaved { get; set; }
+
+    private bool HasSavedSignature =>
+        !string.IsNullOrWhiteSpace(ExistingSignatureUrl);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || HasSavedSignature)
+            return;
+
+        await JSRuntime.InvokeVoidAsync(
+            "signaturePad.initialize",
+            CanvasId);
+    }
+
+    public async Task ClearAsync()
+    {
+        if (Disabled || _saving)
+            return;
+
+        await JSRuntime.InvokeVoidAsync(
+            "signaturePad.clear",
+            CanvasId);
+    }
+
+    public async Task<string?> GetSignatureAsync()
+    {
+        return await JSRuntime.InvokeAsync<string?>(
+            "signaturePad.getData",
+            CanvasId);
+    }
+
+    private async Task SaveAsync()
+    {
+        // Khóa trước await đầu tiên để chặn double-click.
+        if (Disabled || _saving)
+            return;
+
+        _saving = true;
+
+        try
+        {
+            var signature = await GetSignatureAsync();
+
+            if (string.IsNullOrWhiteSpace(signature))
+            {
+                Snackbar.Add(
+                    "Vui lòng ký vào khung trước khi xác nhận.",
+                    Severity.Warning);
+
+                return;
+            }
+
+            await OnSignatureSaved.InvokeAsync(signature);
+        }
+        finally
+        {
+            _saving = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}

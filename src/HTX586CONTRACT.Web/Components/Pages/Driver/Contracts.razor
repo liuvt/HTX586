@@ -1,0 +1,72 @@
+@page "/driver/contracts"
+@attribute [Authorize(Roles = "Driver")]
+@inject IContractService ContractService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ISnackbar Snackbar
+
+<PageTitle>Hợp đồng của tôi</PageTitle>
+<PageHeader Title="Hợp đồng cá nhân" Subtitle="Tạo, ký, xuất PDF và thống kê hợp đồng theo tháng." />
+
+<MudPaper Class="pa-4 mb-4" Elevation="1">
+    <MudGrid>
+        <MudItem xs="12" md="4"><MudDatePicker @bind-Date="_month" Label="Tháng thống kê" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="4"><MudSelect T="ContractBusinessType?" @bind-Value="_businessType" Label="Loại hợp đồng" Clearable="true" Variant="Variant.Outlined"><MudSelectItem T="ContractBusinessType?" Value="@((ContractBusinessType?)ContractBusinessType.Driver)">Hợp đồng tài xế</MudSelectItem><MudSelectItem T="ContractBusinessType?" Value="@((ContractBusinessType?)ContractBusinessType.Cargo)">Hợp đồng hàng hóa</MudSelectItem><MudSelectItem T="ContractBusinessType?" Value="@((ContractBusinessType?)ContractBusinessType.LongDistance)">Hợp đồng đường dài</MudSelectItem></MudSelect></MudItem>
+        <MudItem xs="12" md="4" Class="d-flex align-center"><MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="LoadAsync">Lọc</MudButton><MudSpacer /><MudButton Color="Color.Success" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Href="/driver/contracts/create">Tạo hợp đồng</MudButton></MudItem>
+    </MudGrid>
+</MudPaper>
+
+<MudGrid Class="mb-4">
+    <MudItem xs="12" sm="4"><MudPaper Class="pa-4"><MudText Typo="Typo.caption">Tổng hợp đồng</MudText><MudText Typo="Typo.h4">@_items.Count</MudText></MudPaper></MudItem>
+    <MudItem xs="12" sm="4"><MudPaper Class="pa-4"><MudText Typo="Typo.caption">Đã hoàn tất</MudText><MudText Typo="Typo.h4">@_items.Count(x => x.Status == ContractStatus.Completed)</MudText></MudPaper></MudItem>
+    <MudItem xs="12" sm="4"><MudPaper Class="pa-4"><MudText Typo="Typo.caption">Tổng giá trị</MudText><MudText Typo="Typo.h4">@_items.Sum(x => x.ContractValue ?? 0).ToString("N0")</MudText></MudPaper></MudItem>
+</MudGrid>
+
+<MudTable T="ContractListItemDto" Items="_items" Loading="_loading" Hover="true" Striped="true" Breakpoint="Breakpoint.Sm">
+    <HeaderContent><MudTh>Số hợp đồng</MudTh><MudTh>Loại</MudTh><MudTh>Khách hàng</MudTh><MudTh>Xe</MudTh><MudTh>Ngày tạo</MudTh><MudTh>Giá trị</MudTh><MudTh>Trạng thái</MudTh></HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Số hợp đồng"><MudLink Href="@($"/driver/contracts/{context.Id}")">@context.ContractNumber</MudLink></MudTd>
+        <MudTd DataLabel="Loại">@BusinessName(context.BusinessType)</MudTd>
+        <MudTd DataLabel="Khách hàng">@context.CustomerName</MudTd>
+        <MudTd DataLabel="Xe">@context.VehiclePlate</MudTd>
+        <MudTd DataLabel="Ngày tạo">@context.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</MudTd>
+        <MudTd DataLabel="Giá trị">@context.ContractValue?.ToString("N0")</MudTd>
+        <MudTd DataLabel="Trạng thái"><MudChip T="string" Size="Size.Small" Color="@(context.Status == ContractStatus.Completed ? Color.Success : Color.Warning)">@StatusName(context.Status)</MudChip></MudTd>
+    </RowTemplate>
+    <NoRecordsContent><MudText Class="pa-4">Không có hợp đồng trong tháng đã chọn.</MudText></NoRecordsContent>
+</MudTable>
+
+@code {
+    private bool _loading;
+    private string _userId = string.Empty;
+    private DateTime? _month = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+    private ContractBusinessType? _businessType;
+    private List<ContractListItemDto> _items = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            var month = _month ?? DateTime.Today;
+            _items = (await ContractService.GetAsync(new ContractFilter
+            {
+                DriverId = _userId,
+                BusinessType = _businessType,
+                FromDate = new DateTime(month.Year, month.Month, 1),
+                ToDate = new DateTime(month.Year, month.Month, 1).AddMonths(1).AddDays(-1)
+            })).ToList();
+        }
+        catch (Exception ex) { Snackbar.Add(ex.Message, Severity.Error); }
+        finally { _loading = false; }
+    }
+
+    private static string BusinessName(ContractBusinessType type) => type switch { ContractBusinessType.Cargo => "Hàng hóa", ContractBusinessType.LongDistance => "Đường dài", _ => "Tài xế" };
+    private static string StatusName(ContractStatus status) => status switch { ContractStatus.Completed => "Hoàn tất", ContractStatus.Cancelled => "Đã hủy", ContractStatus.Draft => "Nháp", _ => "Đang ký" };
+}

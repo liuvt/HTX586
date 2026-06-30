@@ -1,0 +1,31 @@
+# .NET
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+
+# Local configuration / secrets
+appsettings.Local.json
+secrets.json
+src/HTX586CONTRACT.Web/appsettings.Production.json
+
+# Runtime uploads are stored outside wwwroot.
+# Keep the folder placeholder but do not commit generated signatures/PDF files.
+HTX586CONTRACT_Data/uploads/*
+!HTX586CONTRACT_Data/uploads/.gitkeep
+
+# Logs and temporary files
+logs/
+*.log
+*.tmp
+*.uploading
+
+# Publish output
+publish/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

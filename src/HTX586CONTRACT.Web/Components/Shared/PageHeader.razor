@@ -1,0 +1,40 @@
+<div class="page-header">
+
+    <div>
+        <MudText Typo="Typo.h5"
+                 Class="page-header-title">
+
+            @Title
+
+        </MudText>
+
+        @if (!string.IsNullOrWhiteSpace(Subtitle))
+        {
+            <MudText Typo="Typo.body2"
+                     Color="Color.Secondary">
+
+                @Subtitle
+
+            </MudText>
+        }
+    </div>
+
+    @if (ChildContent is not null)
+    {
+        <div class="page-header-actions">
+            @ChildContent
+        </div>
+    }
+
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string? Subtitle { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="src/HTX586CONTRACT.Domain/HTX586CONTRACT.Domain.csproj" />
+  <Project Path="src/HTX586CONTRACT.Application/HTX586CONTRACT.Application.csproj" />
+  <Project Path="src/HTX586CONTRACT.Infrastructure/HTX586CONTRACT.Infrastructure.csproj" />
+  <Project Path="src/HTX586CONTRACT.Web/HTX586CONTRACT.Web.csproj" />
+</Solution>

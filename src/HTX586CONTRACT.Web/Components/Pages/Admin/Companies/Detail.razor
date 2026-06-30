@@ -1,0 +1,124 @@
+@page "/admin/companies/{Id:guid}"
+@attribute [Authorize(Roles = "Owner,Admin")]
+@inject ICompanyProfileService CompanyService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject MasterSignatureService MasterSignatureService
+
+<PageTitle>Chi tiết đơn vị</PageTitle>
+<PageHeader Title="Chi tiết công ty/văn phòng đại diện" Subtitle="Company là danh mục độc lập; tài xế được gán Company trong hồ sơ tài xế." />
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_detail is null)
+{
+    <MudAlert Severity="Severity.Error">Không tìm thấy đơn vị.</MudAlert>
+}
+else
+{
+    <MudPaper Class="pa-4" Elevation="1">
+        <MudGrid>
+            <MudItem xs="12" md="6"><MudTextField @bind-Value="_model.CompanyName" Label="Tên đơn vị" Required="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="6"><MudTextField @bind-Value="_model.BranchName" Label="Tên chi nhánh/văn phòng" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.TaxCode" Label="Mã số thuế" Required="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.BusinessLicenseNumber" Label="Giấy phép kinh doanh" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.PhoneNumber" Label="Điện thoại" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12"><MudTextField @bind-Value="_model.Address" Label="Địa chỉ" Required="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.RepresentativeName" Label="Người đại diện" Required="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.RepresentativePosition" Label="Chức vụ" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.RepresentativeCitizenId" Label="CCCD người đại diện" Required="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudDatePicker @bind-Date="_model.RepresentativeCitizenIdIssuedDate" Label="Ngày cấp CCCD" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="8"><MudTextField @bind-Value="_model.RepresentativeCitizenIdIssuedPlace" Label="Nơi cấp CCCD" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.Email" Label="Email" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.BankAccountNumber" Label="Số tài khoản" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.BankName" Label="Ngân hàng" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12"><MudSwitch T="bool" @bind-Value="_model.IsActive" Color="Color.Success" Label="Đang hoạt động" /></MudItem>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle1">Chữ ký cố định người đại diện</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Contract sẽ tự động lấy chữ ký này.</MudText>
+                <SignaturePad ExistingSignatureUrl="@_detail.RepresentativeSignatureFileUrl"
+                              SignerName="@_detail.RepresentativeName"
+                              SignedAt="@_detail.RepresentativeSignedAt"
+                              OnSignatureSaved="SaveCompanySignatureAsync" />
+            </MudItem>
+        </MudGrid>
+
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">
+            Đang gán cho @_detail.DriverCount tài xế; đã dùng trong @_detail.ContractCount hợp đồng.
+        </MudAlert>
+
+        <MudStack Row="true" Class="mt-4">
+            <MudButton Variant="Variant.Outlined" OnClick="@(() => Navigation.NavigateTo("/admin/companies"))">Quay lại</MudButton>
+            <MudSpacer />
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="_saving" OnClick="SaveAsync">Lưu thay đổi</MudButton>
+        </MudStack>
+    </MudPaper>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private CompanyProfileDto? _detail;
+    private UpdateCompanyProfileRequest _model = new();
+    private bool _loading = true;
+    private bool _saving;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        try
+        {
+            _detail = await CompanyService.GetByIdAsync(Id);
+            if (_detail is not null)
+            {
+                _model = new UpdateCompanyProfileRequest
+                {
+                    CompanyName = _detail.CompanyName,
+                    BranchName = _detail.BranchName,
+                    TaxCode = _detail.TaxCode,
+                    BusinessLicenseNumber = _detail.BusinessLicenseNumber,
+                    Address = _detail.Address,
+                    PhoneNumber = _detail.PhoneNumber,
+                    Email = _detail.Email,
+                    RepresentativeName = _detail.RepresentativeName,
+                    RepresentativePosition = _detail.RepresentativePosition,
+                    RepresentativeCitizenId = _detail.RepresentativeCitizenId,
+                    RepresentativeCitizenIdIssuedDate = _detail.RepresentativeCitizenIdIssuedDate,
+                    RepresentativeCitizenIdIssuedPlace = _detail.RepresentativeCitizenIdIssuedPlace,
+                    BankAccountNumber = _detail.BankAccountNumber,
+                    BankName = _detail.BankName,
+                    IsActive = _detail.IsActive
+                };
+            }
+        }
+        finally { _loading = false; }
+    }
+
+    private async Task SaveCompanySignatureAsync(string data)
+    {
+        try
+        {
+            await MasterSignatureService.SaveCompanyRepresentativeSignatureAsync(Id, data);
+            Snackbar.Add("Đã lưu chữ ký cố định người đại diện.", Severity.Success);
+            _detail = await CompanyService.GetByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        try
+        {
+            await CompanyService.UpdateAsync(Id, _model);
+            Snackbar.Add("Đã cập nhật đơn vị.", Severity.Success);
+            _detail = await CompanyService.GetByIdAsync(Id);
+        }
+        catch (Exception ex) { Snackbar.Add(ex.Message, Severity.Error); }
+        finally { _saving = false; }
+    }
+}

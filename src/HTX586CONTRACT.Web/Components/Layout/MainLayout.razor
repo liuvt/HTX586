@@ -1,0 +1,49 @@
+@inherits LayoutComponentBase
+@using HTX586CONTRACT.Web.Themes
+@inject NavigationManager Navigation
+
+<MudThemeProvider Theme="_theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<ForcePasswordChangeOverlay @ref="_forcePasswordChangeOverlay" />
+
+<MudLayout>
+    <MudAppBar Elevation="1" Dense="true">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="(() => _drawerOpen = !_drawerOpen)" />
+        <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" /><MudText Typo="Typo.h6">HTX586CONTRACT</MudText>
+        <MudSpacer />
+        <UserMenu OnChangePassword="OpenChangePasswordAsync" />
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" Variant="DrawerVariant.Responsive" Breakpoint="Breakpoint.Md" Elevation="1">
+        <NavMenu />
+    </MudDrawer>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.False" Class="page-container">@Body</MudContainer>
+    </MudMainContent>
+    <AuthorizeView Roles="Driver">
+        <Authorized>
+            <MudHidden Breakpoint="Breakpoint.SmAndUp"><MobileBottomNav /></MudHidden>
+        </Authorized>
+    </AuthorizeView>
+</MudLayout>
+
+<MudSnackbarProvider />
+
+@code {
+    private readonly MudTheme _theme = AppMudTheme.Create();
+
+    private bool _drawerOpen = true;
+    private void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private ForcePasswordChangeOverlay? _forcePasswordChangeOverlay;
+    private async Task OpenChangePasswordAsync()
+    {
+        if (_forcePasswordChangeOverlay is not null)
+        {
+            await _forcePasswordChangeOverlay.ShowAsync();
+        }
+    }
+}

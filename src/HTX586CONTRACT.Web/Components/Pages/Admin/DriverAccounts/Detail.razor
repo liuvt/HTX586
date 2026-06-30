@@ -1,0 +1,130 @@
+@page "/admin/driver-accounts/{UserId}"
+@attribute [Authorize(Roles = "Owner,Admin")]
+@inject IDriverAccountService DriverAccountService
+@inject ICompanyProfileService CompanyProfileService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject MasterSignatureService MasterSignatureService
+
+<PageTitle>Chi tiết tài xế</PageTitle>
+<PageHeader Title="Cập nhật tài xế" Subtitle="Quản lý tài khoản, hồ sơ, CCCD, GPLX và Company được gán." />
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_detail is null)
+{
+    <MudAlert Severity="Severity.Error">Không tìm thấy tài xế.</MudAlert>
+}
+else
+{
+    <MudForm @ref="_form" @bind-IsValid="_valid">
+        <MudPaper Class="pa-4" Elevation="1">
+            <MudGrid>
+                <MudItem xs="12" md="6"><MudTextField Value="@_detail.UserName" Label="Tên đăng nhập" Disabled="true" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="12" md="6"><MudSelect T="Guid" @bind-Value="_model.CompanyProfileId" Label="Công ty/Văn phòng đại diện" Required="true" Variant="Variant.Outlined">@foreach (var company in _companies){<MudSelectItem T="Guid" Value="@company.Id">@company.CompanyName (@company.TaxCode)</MudSelectItem>}</MudSelect></MudItem>
+                <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.FullName" Label="Họ và tên" Required="true" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.EmployeeCode" Label="Mã nhân viên" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.PhoneNumber" Label="Số điện thoại" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.Email" Label="Email" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.CitizenId" Label="Số CCCD" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="12" md="4"><MudDatePicker @bind-Date="_model.CitizenIdIssuedDate" Label="Ngày cấp CCCD" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.CitizenIdIssuedPlace" Label="Nơi cấp CCCD" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="12" md="4"><MudDatePicker @bind-Date="_model.DateOfBirth" Label="Ngày sinh" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.AreaCode" Label="Khu vực" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="12"><MudTextField @bind-Value="_model.Address" Label="Địa chỉ" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.DriverLicenseNumber" Label="Số GPLX" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.DriverLicenseClass" Label="Hạng GPLX" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="12" md="2"><MudDatePicker @bind-Date="_model.DriverLicenseIssuedDate" Label="Ngày cấp GPLX" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="12" md="2"><MudDatePicker @bind-Date="_model.DriverLicenseExpiryDate" Label="Hết hạn GPLX" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="12" md="6"><MudSwitch T="bool" @bind-Value="_model.IsActive" Color="Color.Success" Label="Tài khoản hoạt động" /></MudItem>
+                <MudItem xs="12" md="6"><MudSwitch T="bool" @bind-Value="_model.MustChangePassword" Color="Color.Warning" Label="Bắt buộc đổi mật khẩu" /></MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle1">Chữ ký cố định tài xế</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Contract sẽ tự động lấy chữ ký này.</MudText>
+                    <SignaturePad ExistingSignatureUrl="@_detail.DriverSignatureFileUrl"
+                                  SignerName="@_detail.FullName"
+                                  SignedAt="@_detail.DriverSignedAt"
+                                  OnSignatureSaved="SaveDriverSignatureAsync" />
+                </MudItem>
+            </MudGrid>
+            <MudStack Row="true" Class="mt-4"><MudButton Variant="Variant.Outlined" OnClick="@(() => Navigation.NavigateTo("/admin/driver-accounts"))">Quay lại</MudButton><MudSpacer /><MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="_saving" OnClick="SaveAsync">Lưu thay đổi</MudButton></MudStack>
+        </MudPaper>
+    </MudForm>
+}
+
+@code {
+    [Parameter] public string UserId { get; set; } = string.Empty;
+    private MudForm? _form;
+    private bool _valid;
+    private bool _loading = true;
+    private bool _saving;
+    private DriverAccountDetailDto? _detail;
+    private UpdateDriverAccountRequest _model = new();
+    private IReadOnlyList<CompanyProfileOptionDto> _companies = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        try
+        {
+            _companies = await CompanyProfileService.GetActiveOptionsAsync();
+            _detail = await DriverAccountService.GetDetailAsync(UserId);
+            if (_detail is not null)
+            {
+                _model = new UpdateDriverAccountRequest
+                {
+                    CompanyProfileId = _detail.CompanyProfileId ?? Guid.Empty,
+                    FullName = _detail.FullName,
+                    EmployeeCode = _detail.EmployeeCode,
+                    PhoneNumber = _detail.PhoneNumber,
+                    Email = _detail.Email,
+                    CitizenId = _detail.CitizenId,
+                    CitizenIdIssuedDate = _detail.CitizenIdIssuedDate,
+                    CitizenIdIssuedPlace = _detail.CitizenIdIssuedPlace,
+                    DateOfBirth = _detail.DateOfBirth,
+                    Address = _detail.Address,
+                    AreaCode = _detail.AreaCode,
+                    DriverLicenseNumber = _detail.DriverLicenseNumber,
+                    DriverLicenseClass = _detail.DriverLicenseClass,
+                    DriverLicenseIssuedDate = _detail.DriverLicenseIssuedDate,
+                    DriverLicenseExpiryDate = _detail.DriverLicenseExpiryDate,
+                    IsActive = _detail.IsActive,
+                    MustChangePassword = _detail.MustChangePassword
+                };
+            }
+        }
+        catch (Exception ex) { Snackbar.Add(ex.Message, Severity.Error); }
+        finally { _loading = false; }
+    }
+
+    private async Task SaveDriverSignatureAsync(string data)
+    {
+        try
+        {
+            await MasterSignatureService.SaveDriverSignatureAsync(UserId, data);
+            Snackbar.Add("Đã lưu chữ ký cố định tài xế.", Severity.Success);
+            _detail = await DriverAccountService.GetDetailAsync(UserId);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        await _form!.ValidateAsync();
+        if (!_valid) return;
+        _saving = true;
+        try
+        {
+            await DriverAccountService.UpdateAsync(UserId, _model);
+            Snackbar.Add("Đã cập nhật tài xế.", Severity.Success);
+            _detail = await DriverAccountService.GetDetailAsync(UserId);
+        }
+        catch (Exception ex) { Snackbar.Add(ex.Message, Severity.Error); }
+        finally { _saving = false; }
+    }
+}

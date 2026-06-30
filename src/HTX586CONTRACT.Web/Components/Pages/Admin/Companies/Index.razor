@@ -1,0 +1,140 @@
+@page "/admin/companies"
+@attribute [Authorize(Roles = "Owner,Admin")]
+@inject ICompanyProfileService CompanyService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject MasterSignatureService MasterSignatureService
+
+<PageTitle>Công ty/Văn phòng đại diện</PageTitle>
+<PageHeader Title="Công ty/Văn phòng đại diện" Subtitle="CompanyProfile được tạo khi Owner tạo tài khoản Admin; tại đây chỉ quản lý/cập nhật hồ sơ và chữ ký." />
+
+<MudPaper Class="pa-4 mb-4" Elevation="1">
+    <MudGrid>
+        <MudItem xs="12" md="8">
+            <MudTextField T="string" @bind-Value="_keyword" Placeholder="Tìm tên đơn vị, mã số thuế, người đại diện..." Immediate="true" Clearable="true" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
+        </MudItem>
+        <MudItem xs="12" md="4" Class="d-flex align-center justify-end">
+            <AuthorizeView Roles="Owner"><Authorized>
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Href="/admin/accounts/create">Tạo Admin + CompanyProfile</MudButton>
+            </Authorized></AuthorizeView>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@if (_showCreate)
+{
+    <MudPaper Class="pa-4 mb-4" Elevation="2">
+        <MudText Typo="Typo.h6" Class="mb-3">Thêm công ty/văn phòng đại diện</MudText>
+        <MudGrid>
+            <MudItem xs="12" md="6"><MudTextField @bind-Value="_create.CompanyName" Label="Tên đơn vị" Required="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="6"><MudTextField @bind-Value="_create.BranchName" Label="Tên chi nhánh/văn phòng" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_create.TaxCode" Label="Mã số thuế" Required="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_create.BusinessLicenseNumber" Label="Giấy phép kinh doanh" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_create.PhoneNumber" Label="Điện thoại" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12"><MudTextField @bind-Value="_create.Address" Label="Địa chỉ" Required="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="6"><MudTextField @bind-Value="_create.RepresentativeName" Label="Người đại diện" Required="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="3"><MudTextField @bind-Value="_create.RepresentativePosition" Label="Chức vụ" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="3"><MudTextField @bind-Value="_create.RepresentativeCitizenId" Label="CCCD người đại diện" Required="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="6"><MudTextField @bind-Value="_create.Email" Label="Email" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="6"><MudSwitch T="bool" @bind-Value="_create.IsActive" Color="Color.Success" Label="Đang hoạt động" /></MudItem>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle1">Chữ ký cố định người đại diện</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Chữ ký này sẽ tự động hiện trên mọi Contract, không cần ký lại.</MudText>
+                <SignaturePad OnSignatureSaved="CaptureCompanySignature" />
+                @if (!string.IsNullOrWhiteSpace(_companySignatureDataUrl))
+                {
+                    <MudChip T="string" Class="mt-2" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.Check">Đã nhận chữ ký cố định</MudChip>
+                }
+            </MudItem>
+        </MudGrid>
+        <MudStack Row="true" Class="mt-4">
+            <MudButton Variant="Variant.Outlined" OnClick="CancelCreate">Hủy</MudButton><MudSpacer />
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="_saving" OnClick="CreateAsync">Lưu đơn vị</MudButton>
+        </MudStack>
+    </MudPaper>
+}
+
+<MudTable T="CompanyProfileListItemDto" Items="FilteredItems" Loading="_loading" Hover="true" Striped="true" Breakpoint="Breakpoint.Sm">
+    <HeaderContent>
+        <MudTh>Đơn vị</MudTh><MudTh>Mã số thuế</MudTh><MudTh>Người đại diện</MudTh><MudTh>Tài xế được gán</MudTh><MudTh>Hợp đồng</MudTh><MudTh>Trạng thái</MudTh><MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Đơn vị"><b>@context.CompanyName</b><br /><small>@context.BranchName</small></MudTd>
+        <MudTd DataLabel="Mã số thuế">@context.TaxCode</MudTd>
+        <MudTd DataLabel="Người đại diện">@context.RepresentativeName</MudTd>
+        <MudTd DataLabel="Tài xế">@context.DriverCount</MudTd>
+        <MudTd DataLabel="Hợp đồng">@context.ContractCount</MudTd>
+        <MudTd DataLabel="Trạng thái"><MudChip T="string" Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Default)">@(context.IsActive ? "Hoạt động" : "Ngừng")</MudChip></MudTd>
+        <MudTd><MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="@(() => Navigation.NavigateTo($"/admin/companies/{context.Id}"))" /></MudTd>
+    </RowTemplate>
+    <NoRecordsContent><MudText Class="pa-4">Chưa có dữ liệu.</MudText></NoRecordsContent>
+</MudTable>
+
+@code {
+    private bool _loading;
+    private bool _saving;
+    private bool _showCreate;
+    private string? _keyword;
+    private IReadOnlyList<CompanyProfileListItemDto> _items = [];
+    private CreateCompanyProfileRequest _create = NewCompany();
+    private string? _companySignatureDataUrl;
+
+    private IEnumerable<CompanyProfileListItemDto> FilteredItems => string.IsNullOrWhiteSpace(_keyword)
+        ? _items
+        : _items.Where(x => Contains(x.CompanyName) || Contains(x.BranchName) || Contains(x.TaxCode) || Contains(x.RepresentativeName));
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try { _items = await CompanyService.GetListAsync(new CompanyProfileFilter { PageSize = 500 }); }
+        catch (Exception ex) { Snackbar.Add(ex.Message, Severity.Error); }
+        finally { _loading = false; }
+    }
+
+    private void OpenCreate()
+    {
+        _create = NewCompany();
+        _companySignatureDataUrl = null;
+        _showCreate = true;
+    }
+
+    private void CancelCreate()
+    {
+        _companySignatureDataUrl = null;
+        _showCreate = false;
+    }
+
+    private Task CaptureCompanySignature(string data)
+    {
+        _companySignatureDataUrl = data;
+        Snackbar.Add("Đã nhận chữ ký cố định người đại diện.", Severity.Success);
+        return Task.CompletedTask;
+    }
+
+    private async Task CreateAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_companySignatureDataUrl))
+        {
+            Snackbar.Add("Vui lòng ký chữ ký cố định của người đại diện trước khi tạo đơn vị.", Severity.Warning);
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            var id = await CompanyService.CreateAsync(_create);
+            await MasterSignatureService.SaveCompanyRepresentativeSignatureAsync(id, _companySignatureDataUrl);
+            Snackbar.Add("Đã tạo công ty/văn phòng đại diện và lưu chữ ký cố định.", Severity.Success);
+            _showCreate = false;
+            await LoadAsync();
+            Navigation.NavigateTo($"/admin/companies/{id}");
+        }
+        catch (Exception ex) { Snackbar.Add(ex.Message, Severity.Error); }
+        finally { _saving = false; }
+    }
+
+    private bool Contains(string? value) => !string.IsNullOrWhiteSpace(value) && value.Contains(_keyword!.Trim(), StringComparison.OrdinalIgnoreCase);
+    private static CreateCompanyProfileRequest NewCompany() => new() { IsActive = true };
+}

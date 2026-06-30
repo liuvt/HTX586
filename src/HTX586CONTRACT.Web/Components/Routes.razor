@@ -1,0 +1,43 @@
+<CascadingAuthenticationState>
+    <Router AppAssembly="typeof(Program).Assembly">
+
+        <Found Context="routeData">
+
+            <AuthorizeRouteView RouteData="routeData"
+                                DefaultLayout="typeof(MainLayout)">
+
+                <Authorizing>
+
+                    <MudProgressLinear Indeterminate="true"
+                                       Color="Color.Primary" />
+
+                </Authorizing>
+
+                <NotAuthorized>
+
+                    <RedirectToRequiredPage />
+
+                </NotAuthorized>
+
+            </AuthorizeRouteView>
+
+            <FocusOnNavigate RouteData="routeData"
+                             Selector="h1" />
+
+        </Found>
+
+        <NotFound>
+
+            <LayoutView Layout="typeof(MainLayout)">
+
+                <MudText Typo="Typo.h5">
+                    Không tìm thấy trang.
+                </MudText>
+
+            </LayoutView>
+
+        </NotFound>
+
+    </Router>
+</CascadingAuthenticationState>
+

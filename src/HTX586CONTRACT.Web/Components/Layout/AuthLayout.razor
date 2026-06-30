@@ -1,0 +1,4 @@
+@inherits LayoutComponentBase
+@using HTX586CONTRACT.Web.Themes
+<MudThemeProvider Theme="_theme"/><MudPopoverProvider/><MudDialogProvider/><div class="auth-page"><section class="auth-brand-panel"><div><MudIcon Icon="@Icons.Material.Filled.AssignmentTurnedIn" Size="Size.Large"/><MudText Typo="Typo.h3" Class="mt-4">HTX586CONTRACT</MudText><MudText Typo="Typo.h6" Class="mt-3">Tạo hợp đồng, ký và xác thực vị trí ngay trên điện thoại.</MudText></div></section><section class="auth-form-panel"><div class="auth-form-container">@Body</div></section></div><MudSnackbarProvider/>
+@code{private readonly MudTheme _theme=AppMudTheme.Create();}

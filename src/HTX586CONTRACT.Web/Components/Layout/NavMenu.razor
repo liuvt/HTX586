@@ -1,0 +1,30 @@
+<MudNavMenu Class="pt-2">
+    <AuthorizeView Roles="Driver" Context="driverAuth">
+        <Authorized>
+            <MudText Typo="Typo.overline" Class="px-4 pt-3">TÀI XẾ</MudText>
+            <MudNavLink Href="/driver/dashboard" Icon="@Icons.Material.Filled.Dashboard">Tổng quan</MudNavLink>
+            <MudNavLink Href="/driver/account" Icon="@Icons.Material.Filled.Person">Thông tin cá nhân</MudNavLink>
+            <MudNavLink Href="/account/change-password" Icon="@Icons.Material.Filled.Password">Đổi mật khẩu</MudNavLink>
+            <MudNavLink Href="/driver/contracts/create" Icon="@Icons.Material.Filled.NoteAdd">Tạo hợp đồng</MudNavLink>
+            <MudNavLink Href="/driver/contracts" Icon="@Icons.Material.Filled.Description">Hợp đồng cá nhân</MudNavLink>
+            <MudNavLink Href="/driver/customers" Icon="@Icons.Material.Filled.Groups">Khách hàng</MudNavLink>
+        </Authorized>
+    </AuthorizeView>
+
+    <AuthorizeView Roles="Owner,Admin" Context="adminAuth">
+        <Authorized>
+            <MudText Typo="Typo.overline" Class="px-4 pt-3">QUẢN TRỊ</MudText>
+            <MudNavLink Href="/admin/dashboard" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+            <AuthorizeView Roles="Owner" Context="ownerAuth">
+                <Authorized>
+                    <MudNavLink Href="/admin/accounts" Icon="@Icons.Material.Filled.AdminPanelSettings">Tài khoản</MudNavLink>
+                </Authorized>
+            </AuthorizeView>
+            <MudNavLink Href="/admin/companies" Icon="@Icons.Material.Filled.Business">Công ty / Văn phòng</MudNavLink>
+            <MudNavLink Href="/admin/driver-accounts" Icon="@Icons.Material.Filled.ManageAccounts">Tài xế</MudNavLink>
+            <MudNavLink Href="/admin/customers" Icon="@Icons.Material.Filled.Groups">Khách hàng</MudNavLink>
+            <MudNavLink Href="/admin/vehicles" Icon="@Icons.Material.Filled.DirectionsCar">Xe & chủ sở hữu</MudNavLink>
+            <MudNavLink Href="/admin/contracts" Icon="@Icons.Material.Filled.Description">Hợp đồng</MudNavLink>
+        </Authorized>
+    </AuthorizeView>
+</MudNavMenu>

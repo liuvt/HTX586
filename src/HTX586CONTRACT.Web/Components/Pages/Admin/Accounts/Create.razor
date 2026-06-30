@@ -1,0 +1,103 @@
+@page "/admin/accounts/create"
+@attribute [Authorize(Roles = "Owner")]
+@inject IAdminAccountService AdminAccountService
+@inject MasterSignatureService MasterSignatureService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Tạo Admin</PageTitle>
+<PageHeader Title="Tạo tài khoản Admin" Subtitle="Owner tạo Admin kèm CompanyProfile và chữ ký cố định của người đại diện." />
+
+<MudPaper Class="pa-4" Elevation="1">
+    <MudText Typo="Typo.h6" Class="mb-3">Thông tin tài khoản Admin</MudText>
+    <MudGrid>
+        <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.UserName" Label="Tên đăng nhập" Required="true" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.Password" Label="Mật khẩu" Required="true" InputType="InputType.Password" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.FullName" Label="Họ tên Admin" Required="true" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.EmployeeCode" Label="Mã nhân viên" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.PhoneNumber" Label="Số điện thoại" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.Email" Label="Email" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12"><MudSwitch T="bool" @bind-Value="_model.MustChangePassword" Color="Color.Warning" Label="Bắt buộc đổi mật khẩu lần đầu" /></MudItem>
+    </MudGrid>
+
+    <MudDivider Class="my-4" />
+
+    <MudText Typo="Typo.h6" Class="mb-3">CompanyProfile của Admin</MudText>
+    <MudGrid>
+        <MudItem xs="12" md="6"><MudTextField @bind-Value="_model.CompanyProfile.CompanyName" Label="Tên đơn vị" Required="true" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="6"><MudTextField @bind-Value="_model.CompanyProfile.BranchName" Label="Tên chi nhánh/văn phòng" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.CompanyProfile.TaxCode" Label="Mã số thuế" Required="true" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.CompanyProfile.BusinessLicenseNumber" Label="Giấy phép kinh doanh" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.CompanyProfile.PhoneNumber" Label="Điện thoại đơn vị" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12"><MudTextField @bind-Value="_model.CompanyProfile.Address" Label="Địa chỉ" Required="true" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="6"><MudTextField @bind-Value="_model.CompanyProfile.RepresentativeName" Label="Người đại diện" Required="true" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="3"><MudTextField @bind-Value="_model.CompanyProfile.RepresentativePosition" Label="Chức vụ" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="3"><MudTextField @bind-Value="_model.CompanyProfile.RepresentativeCitizenId" Label="CCCD người đại diện" Required="true" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="4"><MudDatePicker @bind-Date="_model.CompanyProfile.RepresentativeCitizenIdIssuedDate" Label="Ngày cấp CCCD" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="8"><MudTextField @bind-Value="_model.CompanyProfile.RepresentativeCitizenIdIssuedPlace" Label="Nơi cấp CCCD" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.CompanyProfile.Email" Label="Email đơn vị" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.CompanyProfile.BankAccountNumber" Label="Số tài khoản" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.CompanyProfile.BankName" Label="Ngân hàng" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="6"><MudSwitch T="bool" @bind-Value="_model.CompanyProfile.IsActive" Color="Color.Success" Label="CompanyProfile đang hoạt động" /></MudItem>
+        <MudItem xs="12" md="6">
+            <MudText Typo="Typo.subtitle1">Chữ ký cố định người đại diện</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary">Chữ ký này sẽ tự động hiện trên Contract, không cần ký lại.</MudText>
+            <SignaturePad OnSignatureSaved="CaptureCompanySignature" />
+            @if (!string.IsNullOrWhiteSpace(_companySignatureDataUrl))
+            {
+                <MudChip T="string" Class="mt-2" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.Check">Đã nhận chữ ký cố định</MudChip>
+            }
+        </MudItem>
+    </MudGrid>
+
+    <MudStack Row="true" Class="mt-4">
+        <MudButton Variant="Variant.Outlined" OnClick="@(() => Navigation.NavigateTo("/admin/accounts"))">Quay lại</MudButton>
+        <MudSpacer />
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="_saving" OnClick="CreateAsync">Tạo Admin</MudButton>
+    </MudStack>
+</MudPaper>
+
+@code {
+    private CreateAdminAccountRequest _model = NewModel();
+    private string? _companySignatureDataUrl;
+    private bool _saving;
+
+    private Task CaptureCompanySignature(string data)
+    {
+        _companySignatureDataUrl = data;
+        Snackbar.Add("Đã nhận chữ ký cố định người đại diện.", Severity.Success);
+        return Task.CompletedTask;
+    }
+
+    private async Task CreateAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_companySignatureDataUrl))
+        {
+            Snackbar.Add("Vui lòng ký chữ ký cố định của người đại diện trước khi tạo Admin.", Severity.Warning);
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            var result = await AdminAccountService.CreateAdminAsync(_model);
+            await MasterSignatureService.SaveCompanyRepresentativeSignatureAsync(result.CompanyProfileId, _companySignatureDataUrl);
+            Snackbar.Add("Đã tạo Admin, CompanyProfile và lưu chữ ký cố định.", Severity.Success);
+            Navigation.NavigateTo($"/admin/accounts/{result.UserId}");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private static CreateAdminAccountRequest NewModel() => new()
+    {
+        MustChangePassword = true,
+        CompanyProfile = new() { IsActive = true }
+    };
+}

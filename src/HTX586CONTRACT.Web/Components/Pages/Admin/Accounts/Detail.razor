@@ -1,0 +1,73 @@
+@page "/admin/accounts/{UserId}"
+@attribute [Authorize(Roles = "Owner")]
+@inject IAdminAccountService AdminAccountService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Cập nhật tài khoản</PageTitle>
+<PageHeader Title="Cập nhật tài khoản" Subtitle="Thông tin đăng nhập và trạng thái tài khoản." />
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_model is null)
+{
+    <MudAlert Severity="Severity.Error">Không tìm thấy tài khoản.</MudAlert>
+}
+else
+{
+    <MudPaper Class="pa-4" Elevation="1">
+        <MudGrid>
+            <MudItem xs="12" md="4"><MudTextField Value="@_model.UserName" Label="Tên đăng nhập" Disabled="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField Value="@_model.Roles" Label="Quyền" Disabled="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField Value='@(_model.CompanyName ?? "Không gán")' Label="CompanyProfile" Disabled="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="6"><MudTextField @bind-Value="_model.FullName" Label="Họ và tên" Required="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.EmployeeCode" Label="Mã nhân viên" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.PhoneNumber" Label="Số điện thoại" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.Email" Label="Email" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="6"><MudSwitch T="bool" @bind-Value="_model.IsActive" Color="Color.Success" Label="Tài khoản hoạt động" /></MudItem>
+            <MudItem xs="12" md="6"><MudSwitch T="bool" @bind-Value="_model.MustChangePassword" Color="Color.Warning" Label="Bắt buộc đổi mật khẩu" /></MudItem>
+        </MudGrid>
+        <MudStack Row="true" Class="mt-4">
+            <MudButton Variant="Variant.Outlined" OnClick="@(() => Navigation.NavigateTo("/admin/accounts"))">Quay lại</MudButton>
+            <MudSpacer />
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="_saving" OnClick="SaveAsync">Lưu thay đổi</MudButton>
+        </MudStack>
+    </MudPaper>
+}
+
+@code {
+    [Parameter] public string UserId { get; set; } = string.Empty;
+    private AdminAccountDetail? _model;
+    private bool _loading = true;
+    private bool _saving;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        try { _model = await AdminAccountService.GetDetailAsync(UserId); }
+        finally { _loading = false; }
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_model is null) return;
+        _saving = true;
+        try
+        {
+            var result = await AdminAccountService.UpdateAccountAsync(new UpdateAdminAccountRequest
+            {
+                UserId = _model.Id,
+                FullName = _model.FullName,
+                EmployeeCode = _model.EmployeeCode,
+                PhoneNumber = _model.PhoneNumber,
+                Email = _model.Email,
+                IsActive = _model.IsActive,
+                MustChangePassword = _model.MustChangePassword
+            });
+            Snackbar.Add(result.Message ?? string.Join("; ", result.Errors), result.Succeeded ? Severity.Success : Severity.Error);
+        }
+        finally { _saving = false; }
+    }
+}

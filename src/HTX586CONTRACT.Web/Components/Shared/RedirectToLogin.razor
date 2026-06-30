@@ -1,0 +1,17 @@
+﻿@inject NavigationManager NavigationManager
+
+@code {
+    protected override void OnInitialized()
+    {
+        var relativeUrl =
+            NavigationManager.ToBaseRelativePath(
+                NavigationManager.Uri);
+
+        var returnUrl =
+            Uri.EscapeDataString("/" + relativeUrl);
+
+        NavigationManager.NavigateTo(
+            $"/account/login?returnUrl={returnUrl}",
+            forceLoad: true);
+    }
+}

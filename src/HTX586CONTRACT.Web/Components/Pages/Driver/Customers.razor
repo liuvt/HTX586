@@ -1,0 +1,136 @@
+@page "/driver/customers"
+@attribute [Authorize(Roles = "Driver")]
+@inject IDbContextFactory<ApplicationDbContext> Factory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ISnackbar Snackbar
+
+<PageTitle>Khách hàng của tôi</PageTitle>
+<PageHeader Title="Khách hàng của tôi" Subtitle="Tạo và quản lý danh bạ khách hàng dùng khi lập hợp đồng." />
+
+<MudPaper Class="pa-4 mb-4" Elevation="1">
+    <MudGrid>
+        <MudItem xs="12" md="8"><MudTextField T="string" @bind-Value="_keyword" Placeholder="Tìm tên, số điện thoại, CCCD..." Immediate="true" Clearable="true" Variant="Variant.Outlined" /></MudItem>
+        <MudItem xs="12" md="4" Class="d-flex align-center justify-end"><MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" OnClick="NewCustomer">Thêm khách hàng</MudButton></MudItem>
+    </MudGrid>
+</MudPaper>
+
+@if (_editing)
+{
+    <MudPaper Class="pa-4 mb-4" Elevation="2">
+        <MudGrid>
+            <MudItem xs="12" md="4"><MudSelect T="CustomerType" @bind-Value="_model.Type" Label="Loại khách hàng" Variant="Variant.Outlined"><MudSelectItem Value="@CustomerType.Individual">Cá nhân</MudSelectItem><MudSelectItem Value="@CustomerType.Organization">Đơn vị/Tổ chức</MudSelectItem></MudSelect></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.FullName" Label="Họ tên người liên hệ" Required="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.PhoneNumber" Label="Số điện thoại" Required="true" Variant="Variant.Outlined" /></MudItem>
+            @if (_model.Type == CustomerType.Organization)
+            {
+                <MudItem xs="12" md="8"><MudTextField @bind-Value="_model.OrganizationName" Label="Tên đơn vị/Tổ chức" Required="true" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.TaxCode" Label="Mã số thuế" Variant="Variant.Outlined" /></MudItem>
+            }
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.CitizenId" Label="CCCD" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.Email" Label="Email" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12"><MudTextField @bind-Value="_model.Address" Label="Địa chỉ" Variant="Variant.Outlined" /></MudItem>
+        </MudGrid>
+        <MudStack Row="true" Class="mt-4"><MudButton Variant="Variant.Outlined" OnClick="CancelEdit">Hủy</MudButton><MudSpacer /><MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="_saving" OnClick="SaveAsync">Lưu khách hàng</MudButton></MudStack>
+    </MudPaper>
+}
+
+<MudTable T="Customer" Items="FilteredItems" Loading="_loading" Hover="true" Striped="true" Breakpoint="Breakpoint.Sm">
+    <HeaderContent><MudTh>Khách hàng</MudTh><MudTh>Loại</MudTh><MudTh>Điện thoại</MudTh><MudTh>CCCD/MST</MudTh><MudTh>Số HĐ</MudTh><MudTh></MudTh></HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Khách hàng"><b>@DisplayName(context)</b><br /><small>@context.Address</small></MudTd>
+        <MudTd DataLabel="Loại">@(context.Type == CustomerType.Organization ? "Đơn vị" : "Cá nhân")</MudTd>
+        <MudTd DataLabel="Điện thoại">@context.PhoneNumber</MudTd>
+        <MudTd DataLabel="CCCD/MST">@(context.Type == CustomerType.Organization ? context.TaxCode : context.CitizenId)</MudTd>
+        <MudTd DataLabel="Số HĐ">@context.ContractCount</MudTd>
+        <MudTd><MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="@(() => Edit(context))" /></MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    private string _userId = string.Empty;
+    private bool _loading;
+    private bool _saving;
+    private bool _editing;
+    private string? _keyword;
+    private List<Customer> _items = [];
+    private Customer _model = NewModel();
+    private IEnumerable<Customer> FilteredItems => string.IsNullOrWhiteSpace(_keyword) ? _items : _items.Where(x => Contains(DisplayName(x)) || Contains(x.PhoneNumber) || Contains(x.CitizenId) || Contains(x.TaxCode));
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            await using var db = await Factory.CreateDbContextAsync();
+            _items = await db.Customers.AsNoTracking().Where(x => x.CreatedByDriverId == _userId).OrderByDescending(x => x.LastUsedAt ?? x.CreatedAt).ToListAsync();
+        }
+        finally { _loading = false; }
+    }
+
+    private void NewCustomer() { _model = NewModel(); _model.CreatedByDriverId = _userId; _editing = true; }
+    private void Edit(Customer customer)
+    {
+        _model = new Customer
+        {
+            Id = customer.Id,
+            Type = customer.Type,
+            FullName = customer.FullName,
+            OrganizationName = customer.OrganizationName,
+            TaxCode = customer.TaxCode,
+            PhoneNumber = customer.PhoneNumber,
+            CitizenId = customer.CitizenId,
+            Address = customer.Address,
+            Email = customer.Email,
+            CreatedByDriverId = _userId
+        };
+        _editing = true;
+    }
+    private void CancelEdit() { _editing = false; _model = NewModel(); }
+
+    private async Task SaveAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_model.FullName) || string.IsNullOrWhiteSpace(_model.PhoneNumber))
+        {
+            Snackbar.Add("Vui lòng nhập họ tên và số điện thoại.", Severity.Warning);
+            return;
+        }
+        _saving = true;
+        try
+        {
+            await using var db = await Factory.CreateDbContextAsync();
+            var entity = await db.Customers.FirstOrDefaultAsync(x => x.Id == _model.Id && x.CreatedByDriverId == _userId);
+            if (entity is null)
+            {
+                entity = new Customer { Id = Guid.NewGuid(), CreatedByDriverId = _userId, CreatedBy = _userId, CreatedAt = DateTime.UtcNow };
+                db.Customers.Add(entity);
+            }
+            entity.Type = _model.Type;
+            entity.FullName = _model.FullName.Trim();
+            entity.OrganizationName = N(_model.OrganizationName);
+            entity.TaxCode = N(_model.TaxCode);
+            entity.PhoneNumber = _model.PhoneNumber.Trim();
+            entity.CitizenId = N(_model.CitizenId);
+            entity.Address = N(_model.Address);
+            entity.Email = N(_model.Email);
+            entity.UpdatedAt = DateTime.UtcNow;
+            await db.SaveChangesAsync();
+            Snackbar.Add("Đã lưu khách hàng.", Severity.Success);
+            _editing = false;
+            await LoadAsync();
+        }
+        catch (Exception ex) { Snackbar.Add(ex.Message, Severity.Error); }
+        finally { _saving = false; }
+    }
+
+    private bool Contains(string? value) => !string.IsNullOrWhiteSpace(value) && value.Contains(_keyword!.Trim(), StringComparison.OrdinalIgnoreCase);
+    private static string DisplayName(Customer x) => x.Type == CustomerType.Organization && !string.IsNullOrWhiteSpace(x.OrganizationName) ? x.OrganizationName : x.FullName;
+    private static Customer NewModel() => new() { Type = CustomerType.Individual };
+    private static string? N(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+}

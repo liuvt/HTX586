@@ -1,0 +1,102 @@
+@page "/driver/account"
+@attribute [Authorize(Roles = "Driver")]
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IDriverAccountService Service
+
+<PageTitle>Thông tin cá nhân</PageTitle>
+
+<MudText Typo="Typo.h4">Thông tin cá nhân</MudText>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" Class="mt-4" />
+}
+else if (_detail is null)
+{
+    <MudAlert Severity="Severity.Warning" Class="mt-4">
+        Không tìm thấy thông tin tài khoản.
+    </MudAlert>
+}
+else
+{
+    <MudPaper Class="pa-4 mt-4" Elevation="1">
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2">Họ và tên</MudText>
+                <MudText>@Display(_detail.FullName)</MudText>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2">Công ty / Văn phòng đại diện</MudText>
+                <MudText>@Display(_detail.CompanyName)</MudText>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2">Mã nhân viên</MudText>
+                <MudText>@Display(_detail.EmployeeCode)</MudText>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2">Số điện thoại</MudText>
+                <MudText>@Display(_detail.PhoneNumber)</MudText>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2">CCCD</MudText>
+                <MudText>@Display(_detail.CitizenId)</MudText>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2">Ngày sinh</MudText>
+                <MudText>@FormatDate(_detail.DateOfBirth)</MudText>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2">Số GPLX</MudText>
+                <MudText>@Display(_detail.DriverLicenseNumber)</MudText>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2">Hạng GPLX</MudText>
+                <MudText>@Display(_detail.DriverLicenseClass)</MudText>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2">Ngày hết hạn GPLX</MudText>
+                <MudText>@FormatDate(_detail.DriverLicenseExpiryDate)</MudText>
+            </MudItem>
+            <MudItem xs="12">
+                <MudText Typo="Typo.subtitle2">Địa chỉ</MudText>
+                <MudText>@Display(_detail.Address)</MudText>
+            </MudItem>
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info">
+                    Khi thông tin chưa chính xác, vui lòng gửi yêu cầu cập nhật cho quản trị viên.
+                </MudAlert>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+}
+
+@code {
+    private DriverAccountDetailDto? _detail;
+    private bool _loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true;
+        try
+        {
+            var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userId = authenticationState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!string.IsNullOrWhiteSpace(userId))
+            {
+                _detail = await Service.GetDetailAsync(userId);
+            }
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private static string Display(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? "Chưa cập nhật" : value;
+
+    private static string FormatDate(DateTime? value) =>
+        value?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật";
+}

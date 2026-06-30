@@ -1,0 +1,49 @@
+﻿@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager Navigation
+
+@code {
+    private bool _redirected;
+
+    protected override async Task OnAfterRenderAsync(
+        bool firstRender)
+    {
+        if (!firstRender || _redirected)
+            return;
+
+        _redirected = true;
+
+        var authenticationState =
+            await AuthenticationStateProvider
+                .GetAuthenticationStateAsync();
+
+        var principal = authenticationState.User;
+
+        if (principal.Identity?.IsAuthenticated != true)
+        {
+            Navigation.NavigateTo(
+                "/account/login",
+                forceLoad: true,
+                replace: true);
+
+            return;
+        }
+
+        var user =
+            await UserManager.GetUserAsync(principal);
+
+        if (user?.MustChangePassword == true)
+        {
+            Navigation.NavigateTo(
+                "/account/change-password",
+                forceLoad: true,
+                replace: true);
+
+            return;
+        }
+
+        Navigation.NavigateTo(
+            "/account/access-denied",
+            replace: true);
+    }
+}

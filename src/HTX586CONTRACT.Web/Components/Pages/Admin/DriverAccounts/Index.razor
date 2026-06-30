@@ -1,0 +1,121 @@
+@page "/admin/driver-accounts"
+@attribute [Authorize(Roles = "Owner,Admin")]
+@inject IDriverAccountService Service
+@inject NavigationManager Navigation
+
+<PageTitle>Quản lý tài xế</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+    <MudText Typo="Typo.h4">Quản lý tài xế</MudText>
+    <MudButton Color="Color.Primary"
+               Variant="Variant.Filled"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="CreateDriver">
+        Tạo tài xế
+    </MudButton>
+</MudStack>
+
+<MudPaper Class="pa-4 mt-4" Elevation="1">
+    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.End">
+        <MudTextField T="string"
+                      @bind-Value="_filter.Keyword"
+                      Label="Tìm theo họ tên, tài khoản, CCCD, GPLX"
+                      Variant="Variant.Outlined"
+                      Immediate="true"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      OnKeyDown="HandleSearchKeyDown" />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadAsync">
+            Tìm kiếm
+        </MudButton>
+    </MudStack>
+</MudPaper>
+
+<MudTable Items="_items" Loading="_loading" Hover="true" Striped="true" Class="mt-4">
+    <HeaderContent>
+        <MudTh>Mã nhân viên</MudTh>
+        <MudTh>Họ tên</MudTh>
+        <MudTh>Công ty</MudTh>
+        <MudTh>CCCD</MudTh>
+        <MudTh>GPLX</MudTh>
+        <MudTh>Trạng thái</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Mã nhân viên">@Display(context.EmployeeCode)</MudTd>
+        <MudTd DataLabel="Họ tên">@Display(context.FullName)</MudTd>
+        <MudTd DataLabel="Công ty">@Display(context.CompanyName)</MudTd>
+        <MudTd DataLabel="CCCD">@Display(context.CitizenId)</MudTd>
+        <MudTd DataLabel="GPLX">
+            @DisplayLicense(context.DriverLicenseNumber, context.DriverLicenseClass)
+        </MudTd>
+        <MudTd DataLabel="Trạng thái">
+            <MudChip T="string" Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Error)">
+                @(context.IsActive ? "Hoạt động" : "Đã khóa")
+            </MudChip>
+        </MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                           Color="Color.Primary"
+                           OnClick="@(() => OpenDetail(context.Id))" />
+        </MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText Class="pa-4">Không có tài xế phù hợp.</MudText>
+    </NoRecordsContent>
+</MudTable>
+
+@code {
+    private readonly DriverAccountFilter _filter = new()
+    {
+        Page = 1,
+        PageSize = 100
+    };
+
+    private IReadOnlyList<DriverAccountDto> _items = Array.Empty<DriverAccountDto>();
+    private bool _loading;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            _items = await Service.GetListAsync(_filter);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task HandleSearchKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            await LoadAsync();
+        }
+    }
+
+    private void CreateDriver() =>
+        Navigation.NavigateTo("/admin/driver-accounts/create");
+
+    private void OpenDetail(string userId) =>
+        Navigation.NavigateTo($"/admin/driver-accounts/{userId}");
+
+    private static string Display(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? "—" : value;
+
+    private static string DisplayLicense(string? number, string? licenseClass)
+    {
+        if (string.IsNullOrWhiteSpace(number) && string.IsNullOrWhiteSpace(licenseClass))
+        {
+            return "—";
+        }
+
+        return string.IsNullOrWhiteSpace(licenseClass)
+            ? number ?? "—"
+            : $"{number} ({licenseClass})";
+    }
+}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width,
+                   initial-scale=1.0,
+                   maximum-scale=1.0,
+                   user-scalable=no,
+                   viewport-fit=cover" />
+
+    <base href="/" />
+
+    <title>HTX586CONTRACT</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
+    <link href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" rel="stylesheet" />
+
+    <link rel="stylesheet"
+          href="css/app.css" />
+
+    <link rel="stylesheet"
+          href="css/mystyle.css" />
+
+    <HeadOutlet @rendermode="InteractiveServer" />
+</head>
+
+<body>
+    <Routes @rendermode="InteractiveServer" />
+
+    <script src="_framework/blazor.web.js"></script>
+
+    <script src="@Assets["_content/MudBlazor/MudBlazor.min.js"]"></script>
+
+    <script src="js/signature-pad.js"></script>
+</body>
+
+</html>

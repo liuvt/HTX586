@@ -1,0 +1,50 @@
+<MudPaper Class="dashboard-card pa-4"
+          Outlined="true">
+
+    <MudStack Row="true"
+              AlignItems="AlignItems.Center"
+              Justify="Justify.SpaceBetween">
+
+        <div>
+            <MudText Typo="Typo.caption"
+                     Color="Color.Secondary">
+
+                @Title
+
+            </MudText>
+
+            <MudText Typo="Typo.h4"
+                     Class="mt-1">
+
+                @Value
+
+            </MudText>
+        </div>
+
+        <MudAvatar Color="@Color"
+                   Variant="Variant.Filled"
+                   Size="Size.Medium">
+
+            <MudIcon Icon="@Icon" />
+
+        </MudAvatar>
+
+    </MudStack>
+
+</MudPaper>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Value { get; set; } = "0";
+
+    [Parameter]
+    public string Icon { get; set; }
+        = Icons.Material.Filled.Info;
+
+    [Parameter]
+    public Color Color { get; set; }
+        = Color.Primary;
+}

@@ -1,0 +1,31 @@
+﻿<MudListItem T="string"
+             Icon="@Icon">
+
+    <MudText Typo="Typo.caption"
+             Color="Color.Secondary">
+        @Label
+    </MudText>
+
+    <MudText Typo="Typo.body1"
+             Class="text-break">
+        @DisplayValue
+    </MudText>
+
+</MudListItem>
+
+@code {
+    [Parameter]
+    public string Label { get; set; } = string.Empty;
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public string Icon { get; set; }
+        = Icons.Material.Filled.Info;
+
+    private string DisplayValue =>
+        string.IsNullOrWhiteSpace(Value)
+            ? "Chưa cập nhật"
+            : Value;
+}

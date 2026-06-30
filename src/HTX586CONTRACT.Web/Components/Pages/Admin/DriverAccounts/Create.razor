@@ -1,0 +1,91 @@
+@page "/admin/driver-accounts/create"
+@attribute [Authorize(Roles = "Owner,Admin")]
+@inject IDriverAccountService DriverAccountService
+@inject ICompanyProfileService CompanyProfileService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject MasterSignatureService MasterSignatureService
+
+<PageTitle>Thêm tài xế</PageTitle>
+<PageHeader Title="Thêm tài xế" Subtitle="Tạo tài khoản đăng nhập, hồ sơ cá nhân, CCCD, GPLX và gán Company." />
+
+<MudForm @ref="_form" @bind-IsValid="_valid">
+    <MudPaper Class="pa-4" Elevation="1">
+        <MudGrid>
+            <MudItem xs="12"><MudSelect T="Guid" @bind-Value="_model.CompanyProfileId" Label="Công ty/Văn phòng đại diện" Required="true" Variant="Variant.Outlined">@foreach (var company in _companies){<MudSelectItem T="Guid" Value="@company.Id">@company.CompanyName (@company.TaxCode)</MudSelectItem>}</MudSelect></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.UserName" Label="Tên đăng nhập" Required="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.Password" Label="Mật khẩu ban đầu" Required="true" InputType="InputType.Password" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.FullName" Label="Họ và tên" Required="true" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.EmployeeCode" Label="Mã nhân viên" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.PhoneNumber" Label="Số điện thoại" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.Email" Label="Email" Variant="Variant.Outlined" /></MudItem>
+
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.CitizenId" Label="Số CCCD" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudDatePicker @bind-Date="_model.CitizenIdIssuedDate" Label="Ngày cấp CCCD" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.CitizenIdIssuedPlace" Label="Nơi cấp CCCD" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudDatePicker @bind-Date="_model.DateOfBirth" Label="Ngày sinh" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.AreaCode" Label="Khu vực" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.Address" Label="Địa chỉ" Variant="Variant.Outlined" /></MudItem>
+
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.DriverLicenseNumber" Label="Số GPLX" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.DriverLicenseClass" Label="Hạng GPLX" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="2"><MudDatePicker @bind-Date="_model.DriverLicenseIssuedDate" Label="Ngày cấp GPLX" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" md="2"><MudDatePicker @bind-Date="_model.DriverLicenseExpiryDate" Label="Hết hạn GPLX" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12"><MudSwitch T="bool" @bind-Value="_model.MustChangePassword" Color="Color.Warning" Label="Bắt buộc đổi mật khẩu khi đăng nhập lần đầu" /></MudItem>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle1">Chữ ký cố định tài xế</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Chữ ký này tự động hiển thị ở chân tài xế trên Contract.</MudText>
+                <SignaturePad OnSignatureSaved="CaptureDriverSignature" />
+                @if (!string.IsNullOrWhiteSpace(_driverSignatureDataUrl))
+                {
+                    <MudChip T="string" Class="mt-2" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.Check">Đã nhận chữ ký cố định</MudChip>
+                }
+            </MudItem>
+        </MudGrid>
+        <MudStack Row="true" Class="mt-4"><MudButton Variant="Variant.Outlined" OnClick="@(() => Navigation.NavigateTo("/admin/driver-accounts"))">Hủy</MudButton><MudSpacer /><MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="_saving" OnClick="SaveAsync">Tạo tài xế</MudButton></MudStack>
+    </MudPaper>
+</MudForm>
+
+@code {
+    private MudForm? _form;
+    private bool _valid;
+    private bool _saving;
+    private CreateDriverAccountRequest _model = new() { MustChangePassword = true };
+    private IReadOnlyList<CompanyProfileOptionDto> _companies = [];
+    private string? _driverSignatureDataUrl;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _companies = await CompanyProfileService.GetActiveOptionsAsync();
+        _model.CompanyProfileId = _companies.FirstOrDefault()?.Id ?? Guid.Empty;
+    }
+
+    private Task CaptureDriverSignature(string data)
+    {
+        _driverSignatureDataUrl = data;
+        Snackbar.Add("Đã nhận chữ ký cố định tài xế.", Severity.Success);
+        return Task.CompletedTask;
+    }
+
+    private async Task SaveAsync()
+    {
+        await _form!.ValidateAsync();
+        if (!_valid) return;
+        if (string.IsNullOrWhiteSpace(_driverSignatureDataUrl))
+        {
+            Snackbar.Add("Vui lòng ký chữ ký cố định của tài xế trước khi tạo tài khoản.", Severity.Warning);
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            var id = await DriverAccountService.CreateAsync(_model);
+            await MasterSignatureService.SaveDriverSignatureAsync(id, _driverSignatureDataUrl);
+            Snackbar.Add("Đã tạo tài khoản tài xế và lưu chữ ký cố định.", Severity.Success);
+            Navigation.NavigateTo($"/admin/driver-accounts/{id}");
+        }
+        catch (Exception ex) { Snackbar.Add(ex.Message, Severity.Error); }
+        finally { _saving = false; }
+    }
+}

@@ -1,0 +1,155 @@
+```razor
+@page "/"
+@attribute [Authorize]
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>Đang chuyển hướng</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small"
+              Class="mt-8">
+
+    <MudPaper Outlined="true"
+              Class="pa-6">
+
+        <MudStack AlignItems="AlignItems.Center"
+                  Justify="Justify.Center"
+                  Spacing="3">
+
+            @if (_redirecting)
+            {
+                <MudProgressCircular Indeterminate="true"
+                                     Color="Color.Primary"
+                                     Size="Size.Large" />
+
+                <MudText Typo="Typo.h6"
+                         Align="Align.Center">
+                    Đang kiểm tra quyền truy cập...
+                </MudText>
+
+                <MudText Typo="Typo.body2"
+                         Color="Color.Secondary"
+                         Align="Align.Center">
+                    Vui lòng chờ trong giây lát.
+                </MudText>
+            }
+            else if (!string.IsNullOrWhiteSpace(_errorMessage))
+            {
+                <MudIcon Icon="@Icons.Material.Filled.ErrorOutline"
+                         Color="Color.Error"
+                         Size="Size.Large" />
+
+                <MudText Typo="Typo.h6"
+                         Color="Color.Error"
+                         Align="Align.Center">
+                    Không thể chuyển hướng
+                </MudText>
+
+                <MudText Typo="Typo.body2"
+                         Align="Align.Center">
+                    @_errorMessage
+                </MudText>
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           OnClick="@GoToLogin">
+                    Đăng nhập lại
+                </MudButton>
+            }
+
+        </MudStack>
+
+    </MudPaper>
+
+</MudContainer>
+
+@code {
+    private bool _redirecting = true;
+    private bool _hasRedirected;
+    private string? _errorMessage;
+
+    protected override async Task OnAfterRenderAsync(
+        bool firstRender)
+    {
+        if (!firstRender || _hasRedirected)
+            return;
+
+        await RedirectByRoleAsync();
+    }
+
+    private async Task RedirectByRoleAsync()
+    {
+        try
+        {
+            var authenticationState =
+                await AuthenticationStateProvider
+                    .GetAuthenticationStateAsync();
+
+            var user = authenticationState.User;
+
+            if (user.Identity?.IsAuthenticated != true)
+            {
+                NavigateOnce(
+                    "/account/login",
+                    forceLoad: true);
+
+                return;
+            }
+
+            // Ưu tiên Owner/Admin nếu tài khoản có nhiều role.
+            if (user.IsInRole("Owner") || user.IsInRole("Admin"))
+            {
+                NavigateOnce(
+                    "/admin/dashboard");
+
+                return;
+            }
+
+            if (user.IsInRole("Driver"))
+            {
+                NavigateOnce(
+                    "/driver/dashboard");
+
+                return;
+            }
+
+            _redirecting = false;
+            _errorMessage =
+                "Tài khoản chưa được cấp quyền Owner, Admin hoặc Driver.";
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            _redirecting = false;
+            _errorMessage =
+                $"Không thể kiểm tra quyền tài khoản: {ex.Message}";
+
+            StateHasChanged();
+        }
+    }
+
+    private void NavigateOnce(
+        string url,
+        bool forceLoad = false)
+    {
+        if (_hasRedirected)
+            return;
+
+        _hasRedirected = true;
+
+        Navigation.NavigateTo(
+            url,
+            forceLoad: forceLoad,
+            replace: true);
+    }
+
+    private void GoToLogin()
+    {
+        Navigation.NavigateTo(
+            "/account/login",
+            forceLoad: true);
+    }
+}
+```

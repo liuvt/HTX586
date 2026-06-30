@@ -1,0 +1,36 @@
+﻿<MudItem xs="12"
+         sm="6"
+         md="3">
+
+    <MudPaper Outlined="true"
+              Class="pa-2">
+
+        <MudText Typo="Typo.subtitle2"
+                 Class="mb-2">
+            @Title
+        </MudText>
+
+        <a href="@ImageUrl"
+           target="_blank"
+           rel="noopener noreferrer">
+
+            <MudImage Src="@ImageUrl"
+                      Alt="@Title"
+                      Height="180"
+                      ObjectFit="ObjectFit.Cover"
+                      Class="rounded-lg"
+                      Style="width: 100%;" />
+
+        </a>
+
+    </MudPaper>
+
+</MudItem>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string ImageUrl { get; set; } = string.Empty;
+}

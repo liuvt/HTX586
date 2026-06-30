@@ -1,0 +1,74 @@
+<AuthorizeView>
+    <Authorized Context="ctx">
+        <MudMenu Icon="@Icons.Material.Filled.AccountCircle"
+                 Color="Color.Inherit">
+
+            @if (ctx.User.IsInRole("Driver"))
+            {
+
+                <MudMenuItem Icon="@Icons.Material.Filled.ManageAccounts"
+                             Href="/driver/account">
+                    Tài khoản
+                </MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.LockReset"
+                             OnClick="OpenChangePasswordAsync">
+                    Đổi mật khẩu
+                </MudMenuItem>
+
+                <MudDivider />
+            }
+
+            @if (ctx.User.IsInRole("Owner"))
+            {
+                <MudMenuItem Icon="@Icons.Material.Filled.ManageAccounts"
+                             Href="/admin/accounts">
+                    Tài khoản
+                </MudMenuItem>
+
+                <MudMenuItem Href="/admin/companies" Icon="@Icons.Material.Filled.Business">Công ty</MudMenuItem>
+
+                <MudMenuItem Icon="@Icons.Material.Filled.LockReset"
+                             OnClick="OpenChangePasswordAsync">
+                    Đổi mật khẩu
+                </MudMenuItem>
+
+                <MudDivider />
+            }
+            else if (ctx.User.IsInRole("Admin"))
+            {
+                <MudMenuItem Href="/admin/companies" Icon="@Icons.Material.Filled.Business">Công ty</MudMenuItem>
+
+                <MudMenuItem Icon="@Icons.Material.Filled.LockReset"
+                             OnClick="OpenChangePasswordAsync">
+                    Đổi mật khẩu
+                </MudMenuItem>
+
+                <MudDivider />
+            }
+
+            <MudMenuItem Icon="@Icons.Material.Filled.ExitToApp" IconColor="Color.Error">
+                <form method="post"
+                      action="/account/logout/submit"
+                      class="logout-form">
+                    <AntiforgeryToken />
+
+                    <button type="submit"
+                            class="logout-button">
+                        Đăng xuất
+                    </button>
+                </form>
+            </MudMenuItem>
+
+        </MudMenu>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    [Parameter]
+    public EventCallback OnChangePassword { get; set; }
+
+    private Task OpenChangePasswordAsync()
+    {
+        return OnChangePassword.InvokeAsync();
+    }
+}

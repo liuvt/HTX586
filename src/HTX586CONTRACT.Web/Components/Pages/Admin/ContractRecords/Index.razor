@@ -1,0 +1,36 @@
+@page "/admin/contracts"
+@attribute [Authorize(Roles="Owner,Admin")]
+@inject IContractService ContractService
+@inject NavigationManager Nav
+@inject IDialogService Dialog
+@inject ISnackbar Snackbar
+<PageTitle>Quản lý hợp đồng</PageTitle>
+<PageHeader Title="Quản lý hợp đồng" Subtitle="Tạo, xem, cập nhật, xóa, ký và xuất PDF hợp đồng vận chuyển." />
+<MudPaper Class="pa-4" Outlined="true">
+    <MudStack Row="true" Spacing="2" Class="mb-4">
+        <MudTextField @bind-Value="_search" Label="Tìm số hợp đồng, khách hàng, biển số" Variant="Variant.Outlined" Immediate="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
+        <MudSelect T="ContractStatus?" @bind-Value="_status" Label="Trạng thái" Variant="Variant.Outlined" Clearable="true">
+            @foreach (var s in Enum.GetValues<ContractStatus>()) { <MudSelectItem T="ContractStatus?" Value="@s">@StatusText(s)</MudSelectItem> }
+        </MudSelect>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="LoadAsync">Lọc</MudButton>
+        <MudSpacer />
+        <MudButton Color="Color.Success" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Href="/admin/contracts/create">Tạo hợp đồng</MudButton>
+    </MudStack>
+    <MudTable Items="_items" Hover="true" Dense="true" Loading="_loading">
+        <HeaderContent><MudTh>Số hợp đồng</MudTh><MudTh>Khách hàng</MudTh><MudTh>Tài xế</MudTh><MudTh>Biển số</MudTh><MudTh>Khởi hành</MudTh><MudTh>Giá trị</MudTh><MudTh>Trạng thái</MudTh><MudTh></MudTh></HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Số hợp đồng"><MudLink Href="@($"/admin/contracts/{context.Id}")">@context.ContractNumber</MudLink></MudTd>
+            <MudTd DataLabel="Khách hàng">@context.CustomerName</MudTd><MudTd DataLabel="Tài xế">@context.DriverName</MudTd><MudTd DataLabel="Biển số">@context.VehiclePlate</MudTd>
+            <MudTd DataLabel="Khởi hành">@context.StartTime?.ToString("dd/MM/yyyy HH:mm")</MudTd><MudTd DataLabel="Giá trị">@context.ContractValue?.ToString("N0")</MudTd><MudTd><MudChip T="string" Size="Size.Small">@StatusText(context.Status)</MudChip></MudTd>
+            <MudTd><MudIconButton Icon="@Icons.Material.Filled.Edit" Href="@($"/admin/contracts/{context.Id}")"/><MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(()=>DeleteAsync(context))"/></MudTd>
+        </RowTemplate>
+        <NoRecordsContent><MudText>Chưa có hợp đồng.</MudText></NoRecordsContent>
+    </MudTable>
+</MudPaper>
+@code {
+    private List<ContractListItemDto> _items=[]; private string? _search; private ContractStatus? _status; private bool _loading;
+    protected override Task OnInitializedAsync()=>LoadAsync();
+    private async Task LoadAsync(){_loading=true;_items=(await ContractService.GetAsync(new(){Search=_search,Status=_status})).ToList();_loading=false;}
+    private async Task DeleteAsync(ContractListItemDto item) { var ok = await Dialog.ShowMessageBoxAsync("Xóa hợp đồng", $"Xóa hợp đồng {item.ContractNumber}?", yesText: "Xóa", cancelText: "Hủy"); if (ok == true) { await ContractService.DeleteAsync(item.Id, "admin"); Snackbar.Add("Đã xóa hợp đồng.", Severity.Success); await LoadAsync(); } }
+    private static string StatusText(ContractStatus s)=>s switch{ContractStatus.Draft=>"Nháp",ContractStatus.WaitingCustomerSignature=>"Chờ khách ký",ContractStatus.CustomerSigned=>"Khách đã ký",ContractStatus.WaitingDriverConfirmation=>"Chờ tài xế",ContractStatus.Completed=>"Hoàn tất",ContractStatus.Cancelled=>"Đã hủy",ContractStatus.Expired=>"Hết hạn",_=>"Vô hiệu"};
+}

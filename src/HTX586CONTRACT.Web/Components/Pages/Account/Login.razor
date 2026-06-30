@@ -1,0 +1,146 @@
+@page "/account/login"
+@layout AuthLayout
+@attribute [AllowAnonymous]
+
+<PageTitle>Đăng nhập</PageTitle>
+
+<MudText Typo="Typo.h4">
+    Đăng nhập
+</MudText>
+
+<MudText Color="Color.Secondary"
+         Class="mb-5">
+    Dùng mã tài xế, số điện thoại, email hoặc tên đăng nhập.
+</MudText>
+
+@if (!string.IsNullOrWhiteSpace(ErrorMessage))
+{
+    <MudAlert Severity="Severity.Error"
+              Variant="Variant.Outlined"
+              Class="mb-4">
+        @ErrorMessage
+    </MudAlert>
+}
+
+@if (PasswordChanged)
+{
+    <MudAlert Severity="Severity.Success"
+              Variant="Variant.Outlined"
+              Class="mb-4">
+        Mật khẩu đã được cập nhật thành công. Vui lòng đăng nhập lại.
+    </MudAlert>
+}
+
+<form method="post"
+      action="/account/login/submit"
+      class="login-form">
+
+    <input type="hidden"
+           name="ReturnUrl"
+           value="@SafeReturnUrl" />
+
+    <div class="mb-4">
+        <label for="loginName"
+               class="login-label">
+            Tài khoản
+        </label>
+
+        <input id="loginName"
+               name="LoginName"
+               type="text"
+               autocomplete="username"
+               placeholder="Mã tài xế, số điện thoại hoặc email"
+               required />
+    </div>
+
+    <div class="mb-4">
+        <label for="password"
+               class="login-label">
+            Mật khẩu
+        </label>
+
+        <input id="password"
+               name="Password"
+               type="password"
+               autocomplete="current-password"
+               placeholder="Nhập mật khẩu"
+               required />
+    </div>
+
+    <label class="remember-row">
+        <input type="checkbox"
+               name="RememberMe"
+               value="true" />
+
+        <span>Duy trì đăng nhập</span>
+    </label>
+
+    <button type="submit"
+            class="login-submit">
+        Đăng nhập
+    </button>
+</form>
+
+<MudAlert Severity="Severity.Info"
+          Variant="Variant.Text"
+          Class="mt-5">
+    Tài khoản quản trị được cấu hình khi khởi tạo hệ thống.
+    Hãy đổi mật khẩu sau lần đăng nhập đầu.
+</MudAlert>
+
+@code {
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? ErrorCode { get; set; }
+
+    [SupplyParameterFromQuery(Name = "passwordChanged")]
+    public bool PasswordChanged { get; set; }
+
+    private string SafeReturnUrl =>
+        IsLocalUrl(ReturnUrl)
+            ? ReturnUrl!
+            : string.Empty;
+
+    private string? ErrorMessage =>
+        ErrorCode?.Trim().ToLowerInvariant() switch
+        {
+            "invalid" =>
+                "Tên đăng nhập hoặc mật khẩu không chính xác.",
+
+            "inactive" =>
+                "Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.",
+
+            "locked" =>
+                "Tài khoản đang bị khóa tạm thời do đăng nhập sai nhiều lần.",
+
+            "duplicate" =>
+                "Thông tin đăng nhập đang trùng với tài khoản khác. Vui lòng liên hệ quản trị viên để kiểm tra.",
+
+            "notallowed" =>
+                "Tài khoản chưa được phép đăng nhập.",
+
+            "twofactor" =>
+                "Tài khoản yêu cầu xác thực hai bước nhưng hệ thống chưa hỗ trợ.",
+
+            "norole" =>
+                "Tài khoản chưa được phân quyền sử dụng hệ thống.",
+
+            null or "" =>
+                null,
+
+            _ =>
+                "Không thể đăng nhập. Vui lòng thử lại."
+        };
+
+    private static bool IsLocalUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return false;
+
+        return url.StartsWith("/", StringComparison.Ordinal) &&
+               !url.StartsWith("//", StringComparison.Ordinal) &&
+               !url.StartsWith("/\\", StringComparison.Ordinal);
+    }
+}

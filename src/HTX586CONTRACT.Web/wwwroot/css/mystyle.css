@@ -1,0 +1,136 @@
+.signature-surface {
+    display: block;
+    width: 100%;
+    height: 220px;
+    background: #ffffff;
+    border: 2px dashed #9caaa6;
+    border-radius: 12px;
+    touch-action: none;
+}
+
+.mobile-bottom-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1300;
+    padding: 8px 10px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--mud-palette-divider);
+}
+
+.login-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.login-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid #cbd5d1;
+    border-radius: 10px;
+    background: #ffffff;
+}
+
+    .login-input-wrapper input {
+        width: 100%;
+        border: 0;
+        outline: 0;
+        font-size: 16px;
+        background: transparent;
+    }
+
+.remember-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.login-submit {
+    width: 100%;
+    padding: 13px 16px;
+    border: 0;
+    border-radius: 10px;
+    color: #ffffff;
+    background: #006c5b;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.mobile-create-button {
+    min-width: 48px;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+
+/* Overlay toàn màn hình luôn thấp hơn lớp thông báo hệ thống. */
+.force-password-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.72);
+    z-index: 200000;
+}
+
+.force-password-dialog {
+    position: relative;
+    z-index: 200001;
+    width: min(360px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+}
+
+/*
+ * Snackbar là lớp cao nhất của ứng dụng.
+ * Áp dụng cho mọi page, dialog, drawer và overlay bắt buộc đổi mật khẩu.
+ */
+html body .mud-snackbar-provider {
+    position: fixed !important;
+    top: max(8px, env(safe-area-inset-top)) !important;
+    right: 8px !important;
+    bottom: auto !important;
+    left: 8px !important;
+    z-index: 2147483647 !important;
+    align-items: center !important;
+    pointer-events: none !important;
+}
+
+html body .mud-snackbar-provider .mud-snackbar {
+    position: relative !important;
+    z-index: 2147483647 !important;
+    pointer-events: auto !important;
+}
+
+.saved-signature {
+    display: flex;
+    min-height: 220px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--mud-palette-divider);
+    border-radius: 12px;
+    background: var(--mud-palette-surface);
+}
+
+.saved-signature-image {
+    display: block;
+    width: min(100%, 420px);
+    height: 120px;
+    object-fit: contain;
+    border: 1px solid var(--mud-palette-divider, #e0e0e0);
+    border-radius: 8px;
+    background: #ffffff;
+}

@@ -1,0 +1,62 @@
+@inject NavigationManager NavigationManager
+
+<MudPaper Class="mobile-bottom-nav"
+          Square="true"
+          Elevation="8">
+
+    <MudStack Row="true"
+              AlignItems="AlignItems.Center"
+              Justify="Justify.SpaceAround">
+
+        <MudIconButton Icon="@Icons.Material.Filled.Home"
+                       Color="@GetColor("/driver/dashboard")"
+                       OnClick="@(() =>
+                                                  NavigateTo("/driver/dashboard"))" />
+
+        <MudIconButton Icon="@Icons.Material.Filled.Description"
+                       Color="@GetColor("/driver/contracts")"
+                       OnClick="@(() =>
+                                                  NavigateTo("/driver/contracts"))" />
+
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   Class="mobile-create-button"
+                   OnClick="@(() =>
+                                          NavigateTo("/driver/contracts/create"))">
+
+            <MudIcon Icon="@Icons.Material.Filled.Add" />
+
+        </MudButton>
+
+        <MudIconButton Icon="@Icons.Material.Filled.People"
+                       Color="@GetColor("/driver/customers")"
+                       OnClick="@(() =>
+                                                  NavigateTo("/driver/customers"))" />
+
+        <MudIconButton Icon="@Icons.Material.Filled.Person"
+                       Color="@GetColor("/driver/account")"
+                       OnClick="@(() =>
+                                                  NavigateTo("/driver/account"))" />
+
+    </MudStack>
+
+</MudPaper>
+
+@code {
+    private void NavigateTo(string url)
+    {
+        NavigationManager.NavigateTo(url);
+    }
+
+    private Color GetColor(string path)
+    {
+        var currentPath =
+            new Uri(NavigationManager.Uri).AbsolutePath;
+
+        return currentPath.StartsWith(
+            path,
+            StringComparison.OrdinalIgnoreCase)
+                ? Color.Primary
+                : Color.Default;
+    }
+}
