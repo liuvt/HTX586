@@ -1,3 +1,16 @@
 @page "/admin/dashboard"
-@attribute [Authorize(Roles="Owner,Admin")]
-<PageTitle>Dashboard quản trị</PageTitle><PageHeader Title="Dashboard quản trị" Subtitle="Theo dõi hợp đồng, tài xế và hoạt động ký."/><MudGrid><MudItem xs="6" md="3"><StatCard Title="Hợp đồng hôm nay" Value="24" Icon="@Icons.Material.Filled.Today" Color="Color.Primary"/></MudItem><MudItem xs="6" md="3"><StatCard Title="Chờ ký" Value="6" Icon="@Icons.Material.Filled.Draw" Color="Color.Warning"/></MudItem><MudItem xs="6" md="3"><StatCard Title="Tài xế" Value="120" Icon="@Icons.Material.Filled.Badge" Color="Color.Info"/></MudItem><MudItem xs="6" md="3"><StatCard Title="Hoàn tất" Value="18" Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success"/></MudItem></MudGrid><MudAlert Severity="Severity.Info" Class="mt-4">Đây là dữ liệu giao diện mẫu. Kết nối service/query thật tại module Application.</MudAlert>
+@attribute [Authorize(Roles = "Owner,Admin")]
+<PageTitle>Dashboard quản trị</PageTitle>
+<PageHeader Title="Dashboard quản trị" Subtitle="Theo dõi hợp đồng, tài xế và hoạt động ký." />
+<MudGrid>
+    <MudItem xs="6" md="3">
+        <StatCard Title="Hợp đồng hôm nay" Value="24" Icon="@Icons.Material.Filled.Today" Color="Color.Primary" />
+    </MudItem>
+    <MudItem xs="6" md="3">
+        <StatCard Title="Chờ ký" Value="6" Icon="@Icons.Material.Filled.Draw" Color="Color.Warning" />
+    </MudItem><MudItem xs="6" md="3">
+        <StatCard Title="Tài xế" Value="120" Icon="@Icons.Material.Filled.Badge" Color="Color.Info" />
+    </MudItem>
+    <MudItem xs="6" md="3"><StatCard Title="Hoàn tất" Value="18" Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" /></MudItem>
+</MudGrid>
+<MudAlert Severity="Severity.Info" Class="mt-4">Đây là dữ liệu giao diện mẫu. Kết nối service/query thật tại module Application.</MudAlert>
