@@ -654,9 +654,8 @@ public sealed class PdfContractTemplateRenderer(
             int maxLines)
         {
             var normalized = string.Join(" ", value
-                .Replace("", " ")
-                .Replace("
-", " ")
+                .Replace("\r", " ")
+                .Replace("\n", " ")
                 .Split(' ', StringSplitOptions.RemoveEmptyEntries));
 
             if (string.IsNullOrWhiteSpace(normalized))

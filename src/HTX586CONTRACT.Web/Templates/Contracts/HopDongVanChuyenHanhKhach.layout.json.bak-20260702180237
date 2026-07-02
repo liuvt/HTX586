@@ -17,15 +17,14 @@
       "page": 1,
       "x": 244,
       "y": 55.4,
-      "width": 61.2,
-      "height": 15.2,
+      "width": 82,
+      "height": 16,
       "fontSize": 11,
       "minFontSize": 8,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -39,10 +38,9 @@
       "fontSize": 11,
       "minFontSize": 8,
       "maxLines": 1,
-      "alignment": "Left",
+      "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -59,7 +57,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -76,7 +73,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -85,15 +81,14 @@
       "page": 1,
       "x": 269,
       "y": 92.2,
-      "width": 24.2,
-      "height": 15.2,
+      "width": 37,
+      "height": 16,
       "fontSize": 11,
       "minFontSize": 8,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -107,10 +102,9 @@
       "fontSize": 11,
       "minFontSize": 7.6,
       "maxLines": 1,
-      "alignment": "Left",
+      "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": true,
-      "italic": false,
       "uppercase": true,
       "clearBackground": true
     },
@@ -118,7 +112,7 @@
       "key": "COMPANY_NAME",
       "page": 1,
       "x": 102,
-      "y": 118,
+      "y": 118.0,
       "width": 176,
       "height": 16,
       "fontSize": 11,
@@ -127,7 +121,6 @@
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": true,
-      "italic": false,
       "uppercase": true,
       "clearBackground": true
     },
@@ -135,7 +128,7 @@
       "key": "COMPANY_TAX_CODE",
       "page": 1,
       "x": 315,
-      "y": 118,
+      "y": 118.0,
       "width": 69,
       "height": 16,
       "fontSize": 11,
@@ -144,7 +137,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -152,7 +144,7 @@
       "key": "COMPANY_LICENSE",
       "page": 1,
       "x": 460,
-      "y": 118,
+      "y": 118.0,
       "width": 110,
       "height": 16,
       "fontSize": 11,
@@ -161,7 +153,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -173,12 +164,11 @@
       "width": 285,
       "height": 16,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -195,7 +185,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -212,7 +201,6 @@
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": true,
       "clearBackground": true
     },
@@ -229,7 +217,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -246,7 +233,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -263,7 +249,6 @@
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": true,
       "clearBackground": true
     },
@@ -280,7 +265,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -297,7 +281,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -314,7 +297,6 @@
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": true,
-      "italic": false,
       "uppercase": true,
       "clearBackground": true
     },
@@ -331,7 +313,6 @@
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -343,12 +324,11 @@
       "width": 252,
       "height": 16,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -365,7 +345,6 @@
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -382,7 +361,6 @@
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": true,
       "clearBackground": true
     },
@@ -399,7 +377,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -416,7 +393,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -433,7 +409,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": true,
       "clearBackground": true
     },
@@ -450,7 +425,6 @@
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -467,7 +441,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -484,7 +457,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -501,9 +473,8 @@
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": true,
-      "clearBackground": false
+      "clearBackground": true
     },
     {
       "key": "DRIVER_LICENSE_CLASS",
@@ -518,15 +489,14 @@
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
-      "clearBackground": false
+      "clearBackground": true
     },
     {
       "key": "SECOND_DRIVER_NAME",
       "page": 1,
       "x": 112,
-      "y": 283,
+      "y": 283.0,
       "width": 209,
       "height": 16,
       "fontSize": 11,
@@ -535,15 +505,14 @@
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
-      "clearBackground": false
+      "clearBackground": true
     },
     {
       "key": "SECOND_DRIVER_LICENSE_CLASS",
       "page": 1,
       "x": 384,
-      "y": 283,
+      "y": 283.0,
       "width": 186,
       "height": 16,
       "fontSize": 11,
@@ -552,15 +521,14 @@
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
-      "clearBackground": false
+      "clearBackground": true
     },
     {
       "key": "PICKUP_DATETIME_LOCATION",
       "page": 1,
       "x": 171,
-      "y": 295,
+      "y": 295.0,
       "width": 399,
       "height": 30,
       "fontSize": 11,
@@ -569,9 +537,8 @@
       "alignment": "Left",
       "verticalAlignment": "Top",
       "bold": false,
-      "italic": false,
       "uppercase": false,
-      "clearBackground": false
+      "clearBackground": true
     },
     {
       "key": "DROPOFF_DATETIME_LOCATION",
@@ -586,26 +553,24 @@
       "alignment": "Left",
       "verticalAlignment": "Top",
       "bold": false,
-      "italic": false,
       "uppercase": false,
-      "clearBackground": false
+      "clearBackground": true
     },
     {
       "key": "ROUTE_DESCRIPTION",
       "page": 1,
-      "x": 126.2,
-      "y": 347.7,
-      "width": 445.4,
-      "height": 43.8,
+      "x": 123,
+      "y": 345.3,
+      "width": 447,
+      "height": 43,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 3,
       "alignment": "Left",
       "verticalAlignment": "Top",
       "bold": false,
-      "italic": false,
       "uppercase": false,
-      "clearBackground": false
+      "clearBackground": true
     },
     {
       "key": "TOTAL_KILOMETERS",
@@ -620,7 +585,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -637,7 +601,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -648,15 +611,15 @@
       "y": 397.1,
       "width": 279,
       "height": 16,
-      "fontSize": 10,
+      "fontSize": 10.0,
       "minFontSize": 8.5,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": true,
-      "italic": true,
       "uppercase": false,
-      "clearBackground": true
+      "clearBackground": true,
+      "italic": true
     },
     {
       "key": "PAYMENT_METHOD",
@@ -671,7 +634,6 @@
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -688,7 +650,6 @@
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -705,9 +666,7 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": true,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "SIG_OWNER_NAME",
@@ -722,9 +681,7 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": true,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "SIG_CUSTOMER_NAME",
@@ -739,25 +696,23 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": true,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "PASSENGER_LIST_SUBTITLE",
       "page": 2,
       "x": 45,
-      "y": 72,
+      "y": 72.0,
       "width": 510,
       "height": 15,
-      "fontSize": 11,
+      "fontSize": 11.0,
       "minFontSize": 7.6,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": true,
       "uppercase": false,
+      "italic": true,
       "clearBackground": true
     },
     {
@@ -766,16 +721,14 @@
       "x": 75,
       "y": 117.77,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P01_BIRTH_YEAR",
@@ -783,16 +736,14 @@
       "x": 300,
       "y": 117.77,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P01_NOTE",
@@ -800,16 +751,14 @@
       "x": 377,
       "y": 117.77,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P02_NAME",
@@ -817,16 +766,14 @@
       "x": 75,
       "y": 143.3,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P02_BIRTH_YEAR",
@@ -834,16 +781,14 @@
       "x": 300,
       "y": 143.3,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P02_NOTE",
@@ -851,16 +796,14 @@
       "x": 377,
       "y": 143.3,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P03_NAME",
@@ -868,16 +811,14 @@
       "x": 75,
       "y": 168.08,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P03_BIRTH_YEAR",
@@ -885,16 +826,14 @@
       "x": 300,
       "y": 168.08,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P03_NOTE",
@@ -902,16 +841,14 @@
       "x": 377,
       "y": 168.08,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P04_NAME",
@@ -919,16 +856,14 @@
       "x": 75,
       "y": 192.84,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P04_BIRTH_YEAR",
@@ -936,16 +871,14 @@
       "x": 300,
       "y": 192.84,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P04_NOTE",
@@ -953,16 +886,14 @@
       "x": 377,
       "y": 192.84,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P05_NAME",
@@ -970,16 +901,14 @@
       "x": 75,
       "y": 218.37,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P05_BIRTH_YEAR",
@@ -987,16 +916,14 @@
       "x": 300,
       "y": 218.37,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P05_NOTE",
@@ -1004,16 +931,14 @@
       "x": 377,
       "y": 218.37,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P06_NAME",
@@ -1021,16 +946,14 @@
       "x": 75,
       "y": 243.12,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P06_BIRTH_YEAR",
@@ -1038,16 +961,14 @@
       "x": 300,
       "y": 243.12,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P06_NOTE",
@@ -1055,16 +976,14 @@
       "x": 377,
       "y": 243.12,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P07_NAME",
@@ -1072,16 +991,14 @@
       "x": 75,
       "y": 267.9,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P07_BIRTH_YEAR",
@@ -1089,16 +1006,14 @@
       "x": 300,
       "y": 267.9,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P07_NOTE",
@@ -1106,16 +1021,14 @@
       "x": 377,
       "y": 267.9,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P08_NAME",
@@ -1123,16 +1036,14 @@
       "x": 75,
       "y": 293.42,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P08_BIRTH_YEAR",
@@ -1140,16 +1051,14 @@
       "x": 300,
       "y": 293.42,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P08_NOTE",
@@ -1157,16 +1066,14 @@
       "x": 377,
       "y": 293.42,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P09_NAME",
@@ -1174,16 +1081,14 @@
       "x": 75,
       "y": 318.2,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P09_BIRTH_YEAR",
@@ -1191,16 +1096,14 @@
       "x": 300,
       "y": 318.2,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P09_NOTE",
@@ -1208,16 +1111,14 @@
       "x": 377,
       "y": 318.2,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P10_NAME",
@@ -1225,16 +1126,14 @@
       "x": 75,
       "y": 342.98,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P10_BIRTH_YEAR",
@@ -1242,16 +1141,14 @@
       "x": 300,
       "y": 342.98,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P10_NOTE",
@@ -1259,16 +1156,14 @@
       "x": 377,
       "y": 342.98,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P11_NAME",
@@ -1276,16 +1171,14 @@
       "x": 75,
       "y": 368.5,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P11_BIRTH_YEAR",
@@ -1293,16 +1186,14 @@
       "x": 300,
       "y": 368.5,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P11_NOTE",
@@ -1310,16 +1201,14 @@
       "x": 377,
       "y": 368.5,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P12_NAME",
@@ -1327,16 +1216,14 @@
       "x": 75,
       "y": 393.28,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P12_BIRTH_YEAR",
@@ -1344,16 +1231,14 @@
       "x": 300,
       "y": 393.28,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P12_NOTE",
@@ -1361,16 +1246,14 @@
       "x": 377,
       "y": 393.28,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P13_NAME",
@@ -1378,16 +1261,14 @@
       "x": 75,
       "y": 418.05,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P13_BIRTH_YEAR",
@@ -1395,16 +1276,14 @@
       "x": 300,
       "y": 418.05,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P13_NOTE",
@@ -1412,16 +1291,14 @@
       "x": 377,
       "y": 418.05,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P14_NAME",
@@ -1429,16 +1306,14 @@
       "x": 75,
       "y": 443.55,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P14_BIRTH_YEAR",
@@ -1446,16 +1321,14 @@
       "x": 300,
       "y": 443.55,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P14_NOTE",
@@ -1463,16 +1336,14 @@
       "x": 377,
       "y": 443.55,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P15_NAME",
@@ -1480,16 +1351,14 @@
       "x": 75,
       "y": 468.32,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P15_BIRTH_YEAR",
@@ -1497,16 +1366,14 @@
       "x": 300,
       "y": 468.32,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P15_NOTE",
@@ -1514,16 +1381,14 @@
       "x": 377,
       "y": 468.32,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P16_NAME",
@@ -1531,16 +1396,14 @@
       "x": 75,
       "y": 493.11,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P16_BIRTH_YEAR",
@@ -1548,16 +1411,14 @@
       "x": 300,
       "y": 493.11,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P16_NOTE",
@@ -1565,16 +1426,14 @@
       "x": 377,
       "y": 493.11,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P17_NAME",
@@ -1582,16 +1441,14 @@
       "x": 75,
       "y": 518.63,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P17_BIRTH_YEAR",
@@ -1599,16 +1456,14 @@
       "x": 300,
       "y": 518.63,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P17_NOTE",
@@ -1616,16 +1471,14 @@
       "x": 377,
       "y": 518.63,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P18_NAME",
@@ -1633,16 +1486,14 @@
       "x": 75,
       "y": 543.41,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P18_BIRTH_YEAR",
@@ -1650,16 +1501,14 @@
       "x": 300,
       "y": 543.41,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P18_NOTE",
@@ -1667,16 +1516,14 @@
       "x": 377,
       "y": 543.41,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P19_NAME",
@@ -1684,16 +1531,14 @@
       "x": 75,
       "y": 568.18,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P19_BIRTH_YEAR",
@@ -1701,16 +1546,14 @@
       "x": 300,
       "y": 568.18,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P19_NOTE",
@@ -1718,16 +1561,14 @@
       "x": 377,
       "y": 568.18,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P20_NAME",
@@ -1735,16 +1576,14 @@
       "x": 75,
       "y": 593.7,
       "width": 220,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "P20_BIRTH_YEAR",
@@ -1752,16 +1591,14 @@
       "x": 300,
       "y": 593.7,
       "width": 73,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 1,
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "P20_NOTE",
@@ -1769,16 +1606,14 @@
       "x": 377,
       "y": 593.7,
       "width": 178,
-      "height": 17,
+      "height": 17.0,
       "fontSize": 11,
-      "minFontSize": 7,
+      "minFontSize": 7.0,
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
       "bold": false,
-      "italic": false,
-      "uppercase": false,
-      "clearBackground": false
+      "uppercase": false
     },
     {
       "key": "PASSENGER_COUNT_2D",
@@ -1793,7 +1628,6 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": true,
-      "italic": false,
       "uppercase": false,
       "clearBackground": true
     },
@@ -1810,9 +1644,7 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": true,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     },
     {
       "key": "SIG_DRIVER_NAME",
@@ -1827,9 +1659,7 @@
       "alignment": "Center",
       "verticalAlignment": "Center",
       "bold": true,
-      "italic": false,
-      "uppercase": true,
-      "clearBackground": false
+      "uppercase": true
     }
   ],
   "imageFields": [

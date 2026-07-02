@@ -503,7 +503,7 @@
       "bold": false,
       "italic": false,
       "uppercase": true,
-      "clearBackground": false
+      "clearBackground": true
     },
     {
       "key": "DRIVER_LICENSE_CLASS",
@@ -520,7 +520,7 @@
       "bold": false,
       "italic": false,
       "uppercase": false,
-      "clearBackground": false
+      "clearBackground": true
     },
     {
       "key": "SECOND_DRIVER_NAME",
@@ -537,7 +537,7 @@
       "bold": false,
       "italic": false,
       "uppercase": false,
-      "clearBackground": false
+      "clearBackground": true
     },
     {
       "key": "SECOND_DRIVER_LICENSE_CLASS",
@@ -554,7 +554,7 @@
       "bold": false,
       "italic": false,
       "uppercase": false,
-      "clearBackground": false
+      "clearBackground": true
     },
     {
       "key": "PICKUP_DATETIME_LOCATION",
@@ -571,7 +571,7 @@
       "bold": false,
       "italic": false,
       "uppercase": false,
-      "clearBackground": false
+      "clearBackground": true
     },
     {
       "key": "DROPOFF_DATETIME_LOCATION",
@@ -588,15 +588,15 @@
       "bold": false,
       "italic": false,
       "uppercase": false,
-      "clearBackground": false
+      "clearBackground": true
     },
     {
       "key": "ROUTE_DESCRIPTION",
       "page": 1,
-      "x": 126.2,
-      "y": 347.7,
-      "width": 445.4,
-      "height": 43.8,
+      "x": 123,
+      "y": 345.3,
+      "width": 447,
+      "height": 43,
       "fontSize": 11,
       "minFontSize": 7.2,
       "maxLines": 3,
@@ -605,7 +605,7 @@
       "bold": false,
       "italic": false,
       "uppercase": false,
-      "clearBackground": false
+      "clearBackground": true
     },
     {
       "key": "TOTAL_KILOMETERS",

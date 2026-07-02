@@ -1,0 +1,106 @@
+.designer-panel {
+    position: sticky;
+    top: 72px;
+    max-height: calc(100vh - 96px);
+    overflow: auto;
+}
+
+.designer-workspace {
+    min-height: calc(100vh - 120px);
+}
+
+.pdf-layout-designer-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.pdf-layout-designer-host {
+    overflow: auto;
+    max-height: calc(100vh - 180px);
+    padding: 16px;
+    background: #eceff1;
+    border-radius: 10px;
+}
+
+.pdf-designer-page-shell {
+    margin: 0 auto 28px auto;
+    width: fit-content;
+}
+
+.pdf-designer-page-label {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #546e7a;
+}
+
+.pdf-designer-page {
+    position: relative;
+    background: white;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    user-select: none;
+}
+
+.pdf-designer-page canvas {
+    display: block;
+}
+
+.pdf-designer-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.pdf-designer-field {
+    position: absolute;
+    box-sizing: border-box;
+    pointer-events: auto;
+    cursor: move;
+    border: 1px dashed rgba(25, 118, 210, 0.9);
+    background: rgba(25, 118, 210, 0.08);
+    min-width: 8px;
+    min-height: 8px;
+    outline: none;
+}
+
+.pdf-designer-field-image {
+    border-color: rgba(216, 67, 21, 0.95);
+    background: rgba(216, 67, 21, 0.08);
+}
+
+.pdf-designer-field.is-selected {
+    border: 2px solid #00acc1;
+    background: rgba(0, 172, 193, 0.12);
+    z-index: 10;
+}
+
+.pdf-designer-field-label {
+    position: absolute;
+    left: 0;
+    top: -17px;
+    max-width: 220px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: rgba(38, 50, 56, 0.88);
+    color: white;
+    font-size: 10px;
+    line-height: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+}
+
+.pdf-designer-field-resize {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    right: -5px;
+    bottom: -5px;
+    border-radius: 50%;
+    background: #00acc1;
+    border: 1px solid white;
+    cursor: nwse-resize;
+}

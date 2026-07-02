@@ -15,27 +15,6 @@ using HTX586CONTRACT.Web.Options;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 
-/*
-## User secrets
-
-```bash
-dotnet user-secrets init --project src/HTX586CONTRACT.Web
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "..." --project src/HTX586CONTRACT.Web
-```
-
-## Migration và chạy
-
-```bash
-dotnet clean
-dotnet restore
-dotnet build
-dotnet ef migrations add Init --project src/ContractManagement.Infrastructure --startup-project src/HTX586CONTRACT.Web
-dotnet ef database update --project src/ContractManagement.Infrastructure --startup-project src/HTX586CONTRACT.Web
-dotnet ef database update --project src\ContractManagement.Infrastructure\ContractManagement.Infrastructure.csproj --startup-project src\HTX586CONTRACT.Web\HTX586CONTRACT.Web.csproj --context ApplicationDbContext
-dotnet watch run /a --project src/HTX586CONTRACT.Web
-```
-*/
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
@@ -46,12 +25,12 @@ builder.Services.AddMudServices();
 builder.Services.Configure<FileStorageOptions>(
     builder.Configuration.GetSection(FileStorageOptions.SectionName));
 
-var connectionString = builder.Configuration.GetConnectionString("Vps");
+var connectionString = builder.Configuration.GetConnectionString("Default");
 
 // Tương thích ngược với cấu hình cũ nếu server đang dùng key Vps.
 // Các bản deploy IIS/VPS mới nên cấu hình ConnectionStrings:Default.
 if (string.IsNullOrWhiteSpace(connectionString))
-    connectionString = builder.Configuration.GetConnectionString("Default");
+    connectionString = builder.Configuration.GetConnectionString("Vps");
 
 if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException(
@@ -151,6 +130,7 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddSingleton<IUploadFileStorage, LocalUploadFileStorage>();
 builder.Services.AddSingleton<PdfContractTemplateRenderer>();
+builder.Services.AddScoped<PdfLayoutDesignerService>();
 builder.Services.AddScoped<MasterSignatureService>();
 builder.Services.AddScoped<IContractDocumentService, ContractDocumentService>();
 

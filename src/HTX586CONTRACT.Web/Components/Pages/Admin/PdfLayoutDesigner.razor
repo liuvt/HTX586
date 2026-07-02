@@ -1,0 +1,529 @@
+@page "/admin/pdf-layout-designer"
+@attribute [Authorize(Roles = "Owner,Admin")]
+@implements IAsyncDisposable
+@inject PdfLayoutDesignerService LayoutDesignerService
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+
+<PageTitle>PDF Layout Designer</PageTitle>
+<PageHeader Title="PDF Layout Designer" Subtitle="Kéo thả để pin vị trí data trên mẫu hợp đồng PDF." />
+
+@if (_loading)
+{
+    <MudPaper Class="pa-6">
+        <MudProgressCircular Indeterminate="true" />
+        <MudText Class="mt-3">Đang tải template PDF và layout...</MudText>
+    </MudPaper>
+}
+else if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <MudAlert Severity="Severity.Error">@_errorMessage</MudAlert>
+}
+else if (_document is not null)
+{
+    <MudGrid Spacing="3">
+        <MudItem xs="12" lg="3">
+            <MudPaper Class="pa-3 designer-panel" Elevation="1">
+                <MudText Typo="Typo.h6">Công cụ</MudText>
+                <MudText Typo="Typo.caption" Class="d-block mt-1">Layout: @_document.LayoutPath</MudText>
+
+                <MudDivider Class="my-3" />
+
+                <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save" Disabled="@_saving" OnClick="SaveAsync">
+                        Lưu JSON
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Refresh" Disabled="@_saving" OnClick="ReloadAsync">
+                        Tải lại
+                    </MudButton>
+                </MudStack>
+
+                <MudDivider Class="my-3" />
+
+                <MudText Typo="Typo.subtitle2">Zoom</MudText>
+                <MudStack Row="true" Spacing="1" Class="mt-1">
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="ZoomOutAsync">-</MudButton>
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="ResetZoomAsync">@($"{_zoom:0.00}x")</MudButton>
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="ZoomInAsync">+</MudButton>
+                </MudStack>
+
+                <MudDivider Class="my-3" />
+
+                <MudText Typo="Typo.subtitle2">Field</MudText>
+                <MudSelect T="string" Label="Chọn field" Dense="true" Value="@_selectedFieldId" ValueChanged="SelectFieldFromListAsync" Class="mt-2">
+                    @foreach (var group in _fields.GroupBy(x => x.Page).OrderBy(x => x.Key))
+                    {
+                        <MudSelectItem T="string" Disabled="true" Value="@($"PAGE-{group.Key}")">--- Trang @group.Key ---</MudSelectItem>
+                        @foreach (var field in group.OrderBy(x => x.Kind).ThenBy(x => x.Y).ThenBy(x => x.X))
+                        {
+                            <MudSelectItem T="string" Value="@field.Id">@field.DisplayName</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+
+                @if (_selectedField is not null)
+                {
+                    <MudDivider Class="my-3" />
+                    <MudText Typo="Typo.subtitle2">Vị trí</MudText>
+
+                    <MudGrid Spacing="2" Class="mt-1">
+                        <MudItem xs="6">
+                            <MudNumericField T="double" Label="X" Dense="true" Value="@_selectedField.X" ValueChanged="SetXAsync" Step="0.5" Immediate="true" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudNumericField T="double" Label="Y" Dense="true" Value="@_selectedField.Y" ValueChanged="SetYAsync" Step="0.5" Immediate="true" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudNumericField T="double" Label="Rộng" Dense="true" Value="@_selectedField.Width" ValueChanged="SetWidthAsync" Step="0.5" Immediate="true" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudNumericField T="double" Label="Cao" Dense="true" Value="@_selectedField.Height" ValueChanged="SetHeightAsync" Step="0.5" Immediate="true" />
+                        </MudItem>
+                    </MudGrid>
+
+                    @if (_selectedField.Kind == DesignerFieldKind.Text)
+                    {
+                        <MudDivider Class="my-3" />
+                        <MudText Typo="Typo.subtitle2">Text</MudText>
+
+                        <MudGrid Spacing="2" Class="mt-1">
+                            <MudItem xs="6">
+                                <MudNumericField T="float" Label="Size" Dense="true" Value="@_selectedField.FontSize" ValueChanged="SetFontSizeAsync" Step="0.5f" Immediate="true" />
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudNumericField T="float" Label="Min size" Dense="true" Value="@_selectedField.MinFontSize" ValueChanged="SetMinFontSizeAsync" Step="0.5f" Immediate="true" />
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudNumericField T="int" Label="Số dòng" Dense="true" Value="@_selectedField.MaxLines" ValueChanged="SetMaxLinesAsync" Min="1" Max="5" Immediate="true" />
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudSelect T="string" Label="Canh ngang" Dense="true" Value="@_selectedField.Alignment" ValueChanged="SetAlignmentAsync">
+                                    <MudSelectItem T="string" Value="@("Left")">Left</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@("Center")">Center</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@("Right")">Right</MudSelectItem>
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudSelect T="string" Label="Canh dọc" Dense="true" Value="@_selectedField.VerticalAlignment" ValueChanged="SetVerticalAlignmentAsync">
+                                    <MudSelectItem T="string" Value="@("Top")">Top</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@("Center")">Center</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@("Bottom")">Bottom</MudSelectItem>
+                                </MudSelect>
+                            </MudItem>
+                        </MudGrid>
+
+                        <MudStack Spacing="0" Class="mt-2">
+                            <MudCheckBox T="bool" Label="In đậm" Value="@_selectedField.Bold" ValueChanged="SetBoldAsync" />
+                            <MudCheckBox T="bool" Label="In nghiêng" Value="@_selectedField.Italic" ValueChanged="SetItalicAsync" />
+                            <MudCheckBox T="bool" Label="Viết hoa" Value="@_selectedField.Uppercase" ValueChanged="SetUppercaseAsync" />
+                            <MudCheckBox T="bool" Label="Che nền trắng trước khi vẽ" Value="@_selectedField.ClearBackground" ValueChanged="SetClearBackgroundAsync" />
+                        </MudStack>
+                    }
+
+                    <MudDivider Class="my-3" />
+                    <MudAlert Severity="Severity.Info" Dense="true">
+                        Kéo field trên PDF để đổi X/Y. Kéo góc phải dưới để resize. Nhấn Ctrl + phím mũi tên để tinh chỉnh 0.5pt.
+                    </MudAlert>
+                }
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" lg="9">
+            <MudPaper Class="pa-3 designer-workspace" Elevation="1">
+                <div class="pdf-layout-designer-toolbar">
+                    <MudText Typo="Typo.subtitle2">Preview template PDF</MudText>
+                    <MudSpacer />
+                    <MudChip T="string" Size="Size.Small" Color="Color.Info">@_fields.Count field</MudChip>
+                </div>
+
+                <div @ref="_designerHost" class="pdf-layout-designer-host"></div>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    private PdfLayoutDesignerDocument? _document;
+    private DotNetObjectReference<PdfLayoutDesigner>? _dotNetReference;
+    private ElementReference _designerHost;
+    private readonly List<DesignerFieldView> _fields = [];
+    private DesignerFieldView? _selectedField;
+    private string? _selectedFieldId;
+    private bool _loading = true;
+    private bool _saving;
+    private bool _designerInitialized;
+    private string? _errorMessage;
+    private double _zoom = 1.25d;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDocumentAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_designerInitialized && _document is not null && !_loading)
+        {
+            _dotNetReference = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync(
+                "htxPdfLayoutDesigner.init",
+                _designerHost,
+                _document.TemplateBase64,
+                _fields,
+                _dotNetReference,
+                _zoom);
+            _designerInitialized = true;
+        }
+    }
+
+    private async Task LoadDocumentAsync()
+    {
+        try
+        {
+            _loading = true;
+            _errorMessage = null;
+            _document = await LayoutDesignerService.LoadAsync();
+            RebuildFields();
+            _selectedField = _fields.FirstOrDefault();
+            _selectedFieldId = _selectedField?.Id;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task ReloadAsync()
+    {
+        await JS.InvokeVoidAsync("htxPdfLayoutDesigner.destroy", _designerHost);
+        _designerInitialized = false;
+        _dotNetReference?.Dispose();
+        _dotNetReference = null;
+        await LoadDocumentAsync();
+    }
+
+    private void RebuildFields()
+    {
+        _fields.Clear();
+        if (_document is null)
+            return;
+
+        _fields.AddRange(_document.Layout.TextFields.Select(x => DesignerFieldView.FromText(x)));
+        _fields.AddRange(_document.Layout.ImageFields.Select(x => DesignerFieldView.FromImage(x)));
+    }
+
+    private void ApplyFieldsToLayout()
+    {
+        if (_document is null)
+            return;
+
+        foreach (var field in _fields)
+        {
+            if (field.Kind == DesignerFieldKind.Text)
+            {
+                var target = _document.Layout.TextFields.FirstOrDefault(x => MakeId(DesignerFieldKind.Text, x.Page, x.Key) == field.Id);
+                if (target is null)
+                    continue;
+
+                target.Page = field.Page;
+                target.X = Round(field.X);
+                target.Y = Round(field.Y);
+                target.Width = Round(field.Width);
+                target.Height = Round(field.Height);
+                target.FontSize = field.FontSize;
+                target.MinFontSize = field.MinFontSize;
+                target.MaxLines = field.MaxLines;
+                target.Alignment = field.Alignment;
+                target.VerticalAlignment = field.VerticalAlignment;
+                target.Bold = field.Bold;
+                target.Italic = field.Italic;
+                target.Uppercase = field.Uppercase;
+                target.ClearBackground = field.ClearBackground;
+            }
+            else
+            {
+                var target = _document.Layout.ImageFields.FirstOrDefault(x => MakeId(DesignerFieldKind.Image, x.Page, x.Key) == field.Id);
+                if (target is null)
+                    continue;
+
+                target.Page = field.Page;
+                target.X = Round(field.X);
+                target.Y = Round(field.Y);
+                target.Width = Round(field.Width);
+                target.Height = Round(field.Height);
+                target.Fit = field.Fit;
+            }
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_document is null)
+            return;
+
+        try
+        {
+            _saving = true;
+            ApplyFieldsToLayout();
+            await LayoutDesignerService.SaveLayoutAsync(_document.Layout);
+            Snackbar.Add("Đã lưu layout.json và tự tạo file backup.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Lưu layout thất bại: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task SelectFieldFromListAsync(string? fieldId)
+    {
+        if (string.IsNullOrWhiteSpace(fieldId) || fieldId.StartsWith("PAGE-", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        _selectedFieldId = fieldId;
+        _selectedField = _fields.FirstOrDefault(x => x.Id == fieldId);
+        await JS.InvokeVoidAsync("htxPdfLayoutDesigner.selectField", _designerHost, fieldId);
+    }
+
+    [JSInvokable]
+    public Task OnDesignerFieldSelected(string fieldId)
+    {
+        _selectedFieldId = fieldId;
+        _selectedField = _fields.FirstOrDefault(x => x.Id == fieldId);
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task OnDesignerFieldChanged(PdfLayoutDesignerFieldUpdate update)
+    {
+        var field = _fields.FirstOrDefault(x => x.Id == update.Id);
+        if (field is null)
+            return Task.CompletedTask;
+
+        field.X = Round(update.X);
+        field.Y = Round(update.Y);
+        field.Width = Math.Max(2, Round(update.Width));
+        field.Height = Math.Max(2, Round(update.Height));
+
+        _selectedField = field;
+        _selectedFieldId = field.Id;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private async Task PushSelectedFieldAsync()
+    {
+        if (_selectedField is null)
+            return;
+
+        _selectedField.X = Round(_selectedField.X);
+        _selectedField.Y = Round(_selectedField.Y);
+        _selectedField.Width = Math.Max(2, Round(_selectedField.Width));
+        _selectedField.Height = Math.Max(2, Round(_selectedField.Height));
+
+        await JS.InvokeVoidAsync("htxPdfLayoutDesigner.updateField", _designerHost, _selectedField);
+    }
+
+    private async Task SetXAsync(double value)
+    {
+        if (_selectedField is null) return;
+        _selectedField.X = value;
+        await PushSelectedFieldAsync();
+    }
+
+    private async Task SetYAsync(double value)
+    {
+        if (_selectedField is null) return;
+        _selectedField.Y = value;
+        await PushSelectedFieldAsync();
+    }
+
+    private async Task SetWidthAsync(double value)
+    {
+        if (_selectedField is null) return;
+        _selectedField.Width = Math.Max(2, value);
+        await PushSelectedFieldAsync();
+    }
+
+    private async Task SetHeightAsync(double value)
+    {
+        if (_selectedField is null) return;
+        _selectedField.Height = Math.Max(2, value);
+        await PushSelectedFieldAsync();
+    }
+
+    private async Task SetFontSizeAsync(float value)
+    {
+        if (_selectedField is null) return;
+        _selectedField.FontSize = Math.Max(1, value);
+        await PushSelectedFieldAsync();
+    }
+
+    private async Task SetMinFontSizeAsync(float value)
+    {
+        if (_selectedField is null) return;
+        _selectedField.MinFontSize = Math.Max(1, value);
+        await PushSelectedFieldAsync();
+    }
+
+    private async Task SetMaxLinesAsync(int value)
+    {
+        if (_selectedField is null) return;
+        _selectedField.MaxLines = Math.Max(1, value);
+        await PushSelectedFieldAsync();
+    }
+
+    private async Task SetAlignmentAsync(string value)
+    {
+        if (_selectedField is null) return;
+        _selectedField.Alignment = value;
+        await PushSelectedFieldAsync();
+    }
+
+    private async Task SetVerticalAlignmentAsync(string value)
+    {
+        if (_selectedField is null) return;
+        _selectedField.VerticalAlignment = value;
+        await PushSelectedFieldAsync();
+    }
+
+    private async Task SetBoldAsync(bool value)
+    {
+        if (_selectedField is null) return;
+        _selectedField.Bold = value;
+        await PushSelectedFieldAsync();
+    }
+
+    private async Task SetItalicAsync(bool value)
+    {
+        if (_selectedField is null) return;
+        _selectedField.Italic = value;
+        await PushSelectedFieldAsync();
+    }
+
+    private async Task SetUppercaseAsync(bool value)
+    {
+        if (_selectedField is null) return;
+        _selectedField.Uppercase = value;
+        await PushSelectedFieldAsync();
+    }
+
+    private async Task SetClearBackgroundAsync(bool value)
+    {
+        if (_selectedField is null) return;
+        _selectedField.ClearBackground = value;
+        await PushSelectedFieldAsync();
+    }
+
+    private async Task ZoomInAsync()
+    {
+        _zoom = Math.Min(2.5d, _zoom + 0.1d);
+        await JS.InvokeVoidAsync("htxPdfLayoutDesigner.setZoom", _designerHost, _zoom);
+    }
+
+    private async Task ZoomOutAsync()
+    {
+        _zoom = Math.Max(0.6d, _zoom - 0.1d);
+        await JS.InvokeVoidAsync("htxPdfLayoutDesigner.setZoom", _designerHost, _zoom);
+    }
+
+    private async Task ResetZoomAsync()
+    {
+        _zoom = 1.25d;
+        await JS.InvokeVoidAsync("htxPdfLayoutDesigner.setZoom", _designerHost, _zoom);
+    }
+
+    private static string MakeId(DesignerFieldKind kind, int page, string key)
+        => $"{kind.ToString().ToLowerInvariant()}:{page}:{key}";
+
+    private static double Round(double value)
+        => Math.Round(value, 2, MidpointRounding.AwayFromZero);
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("htxPdfLayoutDesigner.destroy", _designerHost);
+        }
+        catch
+        {
+            // Bỏ qua khi circuit đã đóng.
+        }
+
+        _dotNetReference?.Dispose();
+    }
+
+    private enum DesignerFieldKind
+    {
+        Text,
+        Image
+    }
+
+    private sealed class DesignerFieldView
+    {
+        public string Id { get; set; } = string.Empty;
+        public DesignerFieldKind Kind { get; set; }
+        public string Key { get; set; } = string.Empty;
+        public int Page { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public float FontSize { get; set; } = 11f;
+        public float MinFontSize { get; set; } = 8f;
+        public int MaxLines { get; set; } = 1;
+        public string Alignment { get; set; } = "Left";
+        public string VerticalAlignment { get; set; } = "Center";
+        public bool Bold { get; set; }
+        public bool Italic { get; set; }
+        public bool Uppercase { get; set; }
+        public bool ClearBackground { get; set; }
+        public string Fit { get; set; } = "Contain";
+
+        public string DisplayName => $"P{Page} · {Kind} · {Key}";
+
+        public static DesignerFieldView FromText(PdfTextFieldLayoutDto field)
+            => new()
+            {
+                Id = MakeId(DesignerFieldKind.Text, field.Page, field.Key),
+                Kind = DesignerFieldKind.Text,
+                Key = field.Key,
+                Page = field.Page,
+                X = field.X,
+                Y = field.Y,
+                Width = field.Width,
+                Height = field.Height,
+                FontSize = field.FontSize,
+                MinFontSize = field.MinFontSize,
+                MaxLines = field.MaxLines,
+                Alignment = field.Alignment,
+                VerticalAlignment = field.VerticalAlignment,
+                Bold = field.Bold,
+                Italic = field.Italic,
+                Uppercase = field.Uppercase,
+                ClearBackground = field.ClearBackground
+            };
+
+        public static DesignerFieldView FromImage(PdfImageFieldLayoutDto field)
+            => new()
+            {
+                Id = MakeId(DesignerFieldKind.Image, field.Page, field.Key),
+                Kind = DesignerFieldKind.Image,
+                Key = field.Key,
+                Page = field.Page,
+                X = field.X,
+                Y = field.Y,
+                Width = field.Width,
+                Height = field.Height,
+                Fit = field.Fit
+            };
+    }
+}
