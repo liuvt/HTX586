@@ -126,7 +126,7 @@
       "maxLines": 1,
       "alignment": "Left",
       "verticalAlignment": "Center",
-      "bold": false,
+      "bold": true,
       "italic": false,
       "uppercase": true,
       "clearBackground": true
