@@ -8,7 +8,9 @@ public sealed class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
 {
     public void Configure(EntityTypeBuilder<Vehicle> builder)
     {
-        builder.ToTable("Vehicles");
+        // Vehicles có trigger TR_Vehicles_ValidateAssignedDriver.
+        // Tắt OUTPUT để các lệnh INSERT/UPDATE của EF Core tương thích SQL Server trigger.
+        builder.ToTable("Vehicles", table => table.UseSqlOutputClause(false));
 
         builder.HasKey(x => x.Id);
 

@@ -8,6 +8,11 @@ public sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<Appl
 {
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
+        // AspNetUsers có trigger TR_AspNetUsers_ReleaseAssignedVehicle.
+        // SQL Server không cho phép EF Core dùng OUTPUT trực tiếp trên bảng có trigger,
+        // vì vậy phải chuyển SaveChanges sang cơ chế tương thích trigger.
+        builder.ToTable("AspNetUsers", table => table.UseSqlOutputClause(false));
+
         builder.Property(x => x.FullName)
             .HasMaxLength(200)
             .IsRequired();

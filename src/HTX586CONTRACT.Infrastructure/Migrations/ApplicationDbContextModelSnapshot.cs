@@ -1068,6 +1068,8 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("HTX586CONTRACT.Domain.Notifications.DriverNotification", b =>
@@ -1401,6 +1403,8 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                         .HasDatabaseName("UX_Vehicles_PlateNumber");
 
                     b.ToTable("Vehicles", (string)null);
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -1515,6 +1519,8 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>

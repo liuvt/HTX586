@@ -6,6 +6,7 @@ using HTX586CONTRACT.Domain.Identity;
 using HTX586CONTRACT.Domain.Notifications;
 using HTX586CONTRACT.Domain.Signatures;
 using HTX586CONTRACT.Domain.Vehicles;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,6 +30,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        // AspNetUserRoles có trigger TR_AspNetUserRoles_ReleaseAssignedVehicle.
+        // RemoveFromRoleAsync có thể phát sinh DELETE dùng OUTPUT; SQL Server không cho
+        // dùng OUTPUT trực tiếp trên bảng có trigger nên phải tắt riêng cho bảng này.
+        builder.Entity<IdentityUserRole<string>>()
+            .ToTable("AspNetUserRoles", table => table.UseSqlOutputClause(false));
 
         // Tất cả schema tùy chỉnh được khai báo bằng Fluent API trong thư mục Configurations.
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
