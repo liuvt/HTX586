@@ -152,7 +152,7 @@
         _drivers = await (from user in db.Users.AsNoTracking()
                           join userRole in db.UserRoles.AsNoTracking() on user.Id equals userRole.UserId
                           join role in db.Roles.AsNoTracking() on userRole.RoleId equals role.Id
-                          where role.Name == "Driver" && user.IsActive && user.CompanyProfileId != null
+                          where role.Name == "Driver" && user.IsActive && !user.IsDeleted && user.CompanyProfileId != null && user.CompanyProfile != null && user.CompanyProfile.IsActive && !user.CompanyProfile.IsDeleted
                           orderby user.FullName
                           select user).ToListAsync();
 

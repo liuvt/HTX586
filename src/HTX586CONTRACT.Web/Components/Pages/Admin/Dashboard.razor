@@ -249,7 +249,8 @@ else
 
         await using var db = await Factory.CreateDbContextAsync();
         var adminInfo = await db.Users.AsNoTracking()
-            .Where(x => x.Id == _currentUserId)
+            .Where(x => x.Id == _currentUserId && !x.IsDeleted && x.IsActive &&
+                            x.CompanyProfile != null && x.CompanyProfile.IsActive && !x.CompanyProfile.IsDeleted)
             .Select(x => new
             {
                 x.CompanyProfileId,
@@ -298,7 +299,7 @@ else
                 await (from user in db.Users.AsNoTracking()
                        join userRole in db.UserRoles.AsNoTracking() on user.Id equals userRole.UserId
                        join role in db.Roles.AsNoTracking() on userRole.RoleId equals role.Id
-                       where role.Name == "Driver" && user.IsActive && user.CompanyProfileId == companyId
+                       where role.Name == "Driver" && user.IsActive && !user.IsDeleted && user.CompanyProfileId == companyId
                        select user.Id)
                     .Distinct()
                     .CountAsync();

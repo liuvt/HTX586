@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HTX586CONTRACT.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260721071928_Init")]
+    [Migration("20260722072500_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -60,11 +60,21 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("PhoneNumber")
@@ -118,6 +128,9 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
 
                     b.HasIndex("IsActive")
                         .HasDatabaseName("IX_CompanyProfiles_IsActive");
+
+                    b.HasIndex("IsDeleted")
+                        .HasDatabaseName("IX_CompanyProfiles_IsDeleted");
 
                     b.HasIndex("TaxCode")
                         .IsUnique()
@@ -479,6 +492,13 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("DeviceId")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -486,6 +506,9 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                     b.Property<string>("IpAddress")
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("NewDataJson")
                         .HasColumnType("nvarchar(max)");
@@ -502,6 +525,9 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("IsDeleted")
+                        .HasDatabaseName("IX_ContractAuditLogs_IsDeleted");
 
                     b.HasIndex("ContractId", "CreatedAt")
                         .IsDescending(false, true)
@@ -569,7 +595,8 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
 
                     b.HasIndex("ContractId", "SortOrder")
                         .IsUnique()
-                        .HasDatabaseName("UX_ContractPassengers_Contract_SortOrder");
+                        .HasDatabaseName("UX_ContractPassengers_Contract_SortOrder")
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("ContractPassengers", (string)null);
                 });
@@ -882,6 +909,13 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                     b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("DriverLicenseBackUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -938,6 +972,9 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<bool>("LockoutEnabled")
@@ -1022,6 +1059,9 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                     b.HasIndex("IsActive")
                         .HasDatabaseName("IX_AspNetUsers_IsActive");
 
+                    b.HasIndex("IsDeleted")
+                        .HasDatabaseName("IX_AspNetUsers_IsDeleted");
+
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -1042,10 +1082,20 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("DriverId")
                         .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
@@ -1079,6 +1129,9 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("IsDeleted")
+                        .HasDatabaseName("IX_DriverNotifications_IsDeleted");
 
                     b.HasIndex("DriverId", "IsRead", "CreatedAt")
                         .IsDescending(false, false, true)
@@ -1563,7 +1616,7 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                     b.HasOne("HTX586CONTRACT.Domain.Contracts.Contract", "Contract")
                         .WithMany("Passengers")
                         .HasForeignKey("ContractId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Contract");
@@ -1596,7 +1649,7 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                     b.HasOne("HTX586CONTRACT.Domain.Companies.CompanyProfile", "CompanyProfile")
                         .WithMany("Users")
                         .HasForeignKey("CompanyProfileId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CompanyProfile");
                 });
@@ -1606,7 +1659,7 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                     b.HasOne("HTX586CONTRACT.Domain.Identity.ApplicationUser", "Driver")
                         .WithMany("DriverNotifications")
                         .HasForeignKey("DriverId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Driver");
@@ -1628,12 +1681,12 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                     b.HasOne("HTX586CONTRACT.Domain.Identity.ApplicationUser", "AssignedDriver")
                         .WithMany()
                         .HasForeignKey("AssignedDriverId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("HTX586CONTRACT.Domain.Companies.CompanyProfile", "CompanyProfile")
                         .WithMany("Vehicles")
                         .HasForeignKey("CompanyProfileId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("AssignedDriver");
 

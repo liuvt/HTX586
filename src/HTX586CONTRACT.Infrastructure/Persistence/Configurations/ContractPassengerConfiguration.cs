@@ -25,10 +25,11 @@ public sealed class ContractPassengerConfiguration : IEntityTypeConfiguration<Co
         builder.HasOne(x => x.Contract)
             .WithMany(x => x.Passengers)
             .HasForeignKey(x => x.ContractId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(x => new { x.ContractId, x.SortOrder })
             .IsUnique()
+            .HasFilter("[IsDeleted] = 0")
             .HasDatabaseName("UX_ContractPassengers_Contract_SortOrder");
 
         builder.HasQueryFilter(x => !x.IsDeleted);

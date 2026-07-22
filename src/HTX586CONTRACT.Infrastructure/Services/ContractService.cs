@@ -503,18 +503,31 @@ public sealed class ContractService(
         if (string.IsNullOrWhiteSpace(userId))
             return new(false, false, null);
 
-        var companyProfileId = await db.Users.AsNoTracking()
-            .Where(x => x.Id == userId)
-            .Select(x => x.CompanyProfileId)
+        var accessInfo = await db.Users.AsNoTracking()
+            .Where(x => x.Id == userId && !x.IsDeleted && x.IsActive)
+            .Select(x => new
+            {
+                x.CompanyProfileId,
+                HasOperationalCompany = x.CompanyProfileId.HasValue &&
+                                        x.CompanyProfile != null &&
+                                        x.CompanyProfile.IsActive &&
+                                        !x.CompanyProfile.IsDeleted
+            })
             .FirstOrDefaultAsync(ct);
 
         var user = await userManager.FindByIdAsync(userId);
-        if (user is null)
-            return new(false, false, companyProfileId);
+        if (user is null || user.IsDeleted || !user.IsActive || accessInfo is null)
+            return new(false, false, null);
 
         var isOwner = await userManager.IsInRoleAsync(user, "Owner");
         var isAdmin = await userManager.IsInRoleAsync(user, "Admin");
-        return new(isOwner, isAdmin, companyProfileId);
+
+        // Owner can operate globally without a company assignment. Operational users must belong
+        // to an active, visible company; a hidden parent company immediately removes app access.
+        if (!isOwner && !accessInfo.HasOperationalCompany)
+            return new(false, false, null);
+
+        return new(isOwner, isAdmin, accessInfo.CompanyProfileId);
     }
 
     private static async Task<string> GetUserDisplayNameAsync(
@@ -693,7 +706,7 @@ public sealed class ContractService(
 
         var driver = await db.Users
             .Include(x => x.CompanyProfile)
-            .FirstOrDefaultAsync(x => x.Id == driverId && x.IsActive, ct);
+            .FirstOrDefaultAsync(x => x.Id == driverId && x.IsActive && !x.IsDeleted, ct);
 
         if (driver is null || !await userManager.IsInRoleAsync(driver, "Driver"))
             return (vehicle, null, "Không tìm thấy tài xế, tài khoản đã bị khóa hoặc tài khoản không có quyền Driver.");
@@ -701,8 +714,8 @@ public sealed class ContractService(
         if (driver.CompanyProfileId is null || driver.CompanyProfile is null)
             return (vehicle, null, "Tài xế chưa được gán CompanyProfile.");
 
-        if (!driver.CompanyProfile.IsActive)
-            return (vehicle, null, "CompanyProfile của tài xế đã ngừng hoạt động.");
+        if (!driver.CompanyProfile.IsActive || driver.CompanyProfile.IsDeleted)
+            return (vehicle, null, "CompanyProfile của tài xế đã ngừng hoạt động hoặc đã bị ẩn.");
 
         if (vehicle.CompanyProfileId != driver.CompanyProfileId)
             return (vehicle, null, "Xe và tài xế phải thuộc cùng CompanyProfile.");

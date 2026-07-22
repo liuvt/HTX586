@@ -80,15 +80,21 @@ public sealed class CompanyProfileConfiguration : IEntityTypeConfiguration<Compa
         builder.Property(x => x.UpdatedAt)
             .HasColumnType("datetime2");
 
+        builder.Property(x => x.DeletedAt)
+            .HasColumnType("datetime2");
+
+        builder.Property(x => x.DeletedBy)
+            .HasMaxLength(450);
+
         builder.HasMany(x => x.Users)
             .WithOne(x => x.CompanyProfile)
             .HasForeignKey(x => x.CompanyProfileId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(x => x.Vehicles)
             .WithOne(x => x.CompanyProfile)
             .HasForeignKey(x => x.CompanyProfileId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(x => x.Contracts)
             .WithOne(x => x.CompanyProfile)
@@ -104,5 +110,8 @@ public sealed class CompanyProfileConfiguration : IEntityTypeConfiguration<Compa
 
         builder.HasIndex(x => x.IsActive)
             .HasDatabaseName("IX_CompanyProfiles_IsActive");
+
+        builder.HasIndex(x => x.IsDeleted)
+            .HasDatabaseName("IX_CompanyProfiles_IsDeleted");
     }
 }

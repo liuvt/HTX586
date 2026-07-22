@@ -82,9 +82,11 @@ public static class AccountEndpoints
         var loginCandidates =
             await userManager.Users
                 .AsNoTracking()
+                .Include(x => x.CompanyProfile)
                 .Where(x =>
-                    x.NormalizedUserName == normalizedUserName ||
-                    (hasValidPhone && x.PhoneNumber != null))
+                    !x.IsDeleted &&
+                    (x.NormalizedUserName == normalizedUserName ||
+                     (hasValidPhone && x.PhoneNumber != null)))
                 .OrderByDescending(x => x.IsActive)
                 .ThenBy(x => x.CreatedAt)
                 .ToListAsync(
@@ -128,8 +130,9 @@ public static class AccountEndpoints
          */
         var user =
             await userManager.Users
+                .Include(x => x.CompanyProfile)
                 .FirstOrDefaultAsync(
-                    x => x.Id == matchedUser.Id,
+                    x => x.Id == matchedUser.Id && !x.IsDeleted,
                     httpContext.RequestAborted);
 
         if (user is null)
@@ -139,7 +142,7 @@ public static class AccountEndpoints
                 returnUrl);
         }
 
-        if (!user.IsActive)
+        if (user.IsDeleted || !user.IsActive)
         {
             var status = user.RegistrationStatus?.Trim().ToLowerInvariant();
             return RedirectToLogin(status == "pending" ? "pending" : status == "rejected" ? "rejected" : "inactive", returnUrl);
@@ -187,6 +190,16 @@ public static class AccountEndpoints
 
         var roles =
             await userManager.GetRolesAsync(user);
+
+        var isOwner = roles.Contains("Owner", StringComparer.OrdinalIgnoreCase);
+        var isOperationalUser = roles.Contains("Admin", StringComparer.OrdinalIgnoreCase) ||
+                                roles.Contains("Driver", StringComparer.OrdinalIgnoreCase);
+        if (!isOwner && isOperationalUser &&
+            (user.CompanyProfile is null || user.CompanyProfile.IsDeleted || !user.CompanyProfile.IsActive))
+        {
+            await signInManager.SignOutAsync();
+            return RedirectToLogin("inactive", returnUrl);
+        }
 
         if (roles.Contains(
                 "Owner",

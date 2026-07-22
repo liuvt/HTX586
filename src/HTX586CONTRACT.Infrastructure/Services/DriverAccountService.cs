@@ -122,7 +122,11 @@ public sealed class DriverAccountService(
         }
         catch
         {
-            await userManager.DeleteAsync(user);
+            user.IsDeleted = true;
+            user.DeletedAt = DateTime.UtcNow;
+            user.DeletedBy = "SELF_REGISTRATION_ROLLBACK";
+            user.IsActive = false;
+            Ensure(await userManager.UpdateAsync(user));
             throw;
         }
     }
@@ -146,7 +150,7 @@ public sealed class DriverAccountService(
     {
         await using var db = await factory.CreateDbContextAsync(ct);
         return await db.Users.AsNoTracking()
-            .Where(x => x.Id == userId && x.RegistrationStatus == "Pending")
+            .Where(x => x.Id == userId && !x.IsDeleted && x.RegistrationStatus == "Pending" && x.CompanyProfile != null && !x.CompanyProfile.IsDeleted)
             .Select(RegistrationProjection)
             .FirstOrDefaultAsync(ct);
     }
@@ -155,7 +159,7 @@ public sealed class DriverAccountService(
     {
         await using var db = await factory.CreateDbContextAsync(ct);
         await db.Users
-            .Where(x => x.Id == userId && x.RegistrationStatus == "Pending" && x.RegistrationViewedAt == null)
+            .Where(x => x.Id == userId && !x.IsDeleted && x.RegistrationStatus == "Pending" && x.RegistrationViewedAt == null)
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(x => x.RegistrationViewedAt, DateTime.UtcNow)
                 .SetProperty(x => x.RegistrationViewedByUserId, viewerUserId)
@@ -165,6 +169,7 @@ public sealed class DriverAccountService(
     public async Task ReviewRegistrationAsync(string userId, bool approve, string? note, string reviewerUserId, CancellationToken ct = default)
     {
         var user = await userManager.FindByIdAsync(userId) ?? throw new KeyNotFoundException("Không tìm thấy yêu cầu đăng ký.");
+        EnsureNotDeleted(user, "Không tìm thấy yêu cầu đăng ký.");
         await EnsureDriverRoleAsync(user);
         if (!string.Equals(user.RegistrationStatus, "Pending", StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Yêu cầu này đã được xử lý.");
@@ -190,6 +195,7 @@ public sealed class DriverAccountService(
         var phoneNumber = VietnamPhoneNumber.NormalizeOrThrow(request.PhoneNumber);
         await EnsureCompanyAsync(request.CompanyProfileId, ct);
         var user = await userManager.FindByIdAsync(id) ?? throw new KeyNotFoundException("Không tìm thấy tài xế.");
+        EnsureNotDeleted(user, "Không tìm thấy tài xế.");
         await EnsureDriverRoleAsync(user);
         await EnsureLoginIdentifiersAvailableAsync(user.UserName ?? string.Empty, phoneNumber, user.Id, ct);
 
@@ -229,7 +235,7 @@ public sealed class DriverAccountService(
         return await (from user in db.Users.AsNoTracking()
                       join userRole in db.UserRoles.AsNoTracking() on user.Id equals userRole.UserId
                       join role in db.Roles.AsNoTracking() on userRole.RoleId equals role.Id
-                      where user.Id == id && role.Name == "Driver"
+                      where user.Id == id && !user.IsDeleted && role.Name == "Driver" && user.CompanyProfile != null && !user.CompanyProfile.IsDeleted
                       select user)
             .Select(x => new DriverAccountDetailDto
             {
@@ -271,7 +277,7 @@ public sealed class DriverAccountService(
         var query = from user in db.Users.AsNoTracking()
                     join userRole in db.UserRoles on user.Id equals userRole.UserId
                     join role in db.Roles on userRole.RoleId equals role.Id
-                    where role.Name == "Driver"
+                    where role.Name == "Driver" && !user.IsDeleted && user.CompanyProfile != null && !user.CompanyProfile.IsDeleted
                     select user;
 
         if (!string.IsNullOrWhiteSpace(filter.Keyword))
@@ -327,6 +333,7 @@ public sealed class DriverAccountService(
     {
         var user = await userManager.FindByIdAsync(id) 
             ?? throw new KeyNotFoundException("Không tìm thấy tài xế.");
+        EnsureNotDeleted(user, "Không tìm thấy tài xế.");
 
         await EnsureDriverRoleAsync(user);
 
@@ -345,6 +352,7 @@ public sealed class DriverAccountService(
     public async Task ResetPasswordAsync(string id, string password, CancellationToken ct = default)
     {
         var user = await userManager.FindByIdAsync(id) ?? throw new KeyNotFoundException("Không tìm thấy tài xế.");
+        EnsureNotDeleted(user, "Không tìm thấy tài xế.");
         await EnsureDriverRoleAsync(user);
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
         Ensure(await userManager.ResetPasswordAsync(user, token, password));
@@ -356,6 +364,7 @@ public sealed class DriverAccountService(
     public async Task RequirePasswordChangeAsync(string id, CancellationToken ct = default)
     {
         var user = await userManager.FindByIdAsync(id) ?? throw new KeyNotFoundException("Không tìm thấy tài xế.");
+        EnsureNotDeleted(user, "Không tìm thấy tài xế.");
         await EnsureDriverRoleAsync(user);
         user.MustChangePassword = true;
         Ensure(await userManager.UpdateAsync(user));
@@ -363,12 +372,23 @@ public sealed class DriverAccountService(
 
     public async Task DeleteAsync(string id, CancellationToken ct = default)
     {
-        await using var db = await factory.CreateDbContextAsync(ct);
-        if (await db.Contracts.AnyAsync(x => x.DriverId == id, ct))
-            throw new InvalidOperationException("Không thể xóa tài xế đã có hợp đồng. Hãy khóa tài khoản thay vì xóa.");
-        var user = await userManager.FindByIdAsync(id) ?? throw new KeyNotFoundException("Không tìm thấy tài xế.");
+        var user = await userManager.FindByIdAsync(id)
+            ?? throw new KeyNotFoundException("Không tìm thấy tài xế.");
+        EnsureNotDeleted(user, "Không tìm thấy tài xế.");
         await EnsureDriverRoleAsync(user);
-        Ensure(await userManager.DeleteAsync(user));
+
+        // Chỉ ẩn tài khoản khỏi giao diện và khóa đăng nhập. Giữ nguyên user,
+        // role, hợp đồng, khách hàng đã tạo và toàn bộ quan hệ lịch sử trong DB.
+        var now = DateTime.UtcNow;
+        user.IsDeleted = true;
+        user.DeletedAt = now;
+        user.DeletedBy = "MANAGEMENT_UI";
+        user.IsActive = false;
+        user.DriverSignatureIsActive = false;
+        user.DriverSignatureInactiveAt ??= now;
+        user.SecurityStamp = Guid.NewGuid().ToString();
+        user.UpdatedAt = now;
+        Ensure(await userManager.UpdateAsync(user));
     }
 
 
@@ -400,6 +420,12 @@ public sealed class DriverAccountService(
             throw new InvalidOperationException("Số điện thoại hoặc tên đăng nhập đang được sử dụng bởi tài khoản khác.");
     }
 
+    private static void EnsureNotDeleted(ApplicationUser user, string message)
+    {
+        if (user.IsDeleted)
+            throw new KeyNotFoundException(message);
+    }
+
     private async Task EnsureDriverRoleAsync(ApplicationUser user)
     {
         if (!await userManager.IsInRoleAsync(user, "Driver"))
@@ -409,12 +435,12 @@ public sealed class DriverAccountService(
     private async Task EnsureCompanyAsync(Guid companyId, CancellationToken ct)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
-        if (!await db.CompanyProfiles.AnyAsync(x => x.Id == companyId && x.IsActive, ct))
+        if (!await db.CompanyProfiles.AnyAsync(x => x.Id == companyId && x.IsActive && !x.IsDeleted, ct))
             throw new InvalidOperationException("Công ty/văn phòng đại diện không tồn tại hoặc đã ngừng hoạt động.");
     }
 
     private static IQueryable<ApplicationUser> PendingRegistrationQuery(ApplicationDbContext db) =>
-        db.Users.AsNoTracking().Where(x => x.RegistrationStatus == "Pending");
+        db.Users.AsNoTracking().Where(x => !x.IsDeleted && x.RegistrationStatus == "Pending" && x.CompanyProfile != null && !x.CompanyProfile.IsDeleted);
 
     private static readonly Expression<Func<ApplicationUser, DriverRegistrationRequestDto>> RegistrationProjection = x => new DriverRegistrationRequestDto
     {

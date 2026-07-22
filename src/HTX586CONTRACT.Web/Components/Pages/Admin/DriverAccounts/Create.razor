@@ -145,7 +145,8 @@
             await using var db = await Factory.CreateDbContextAsync();
 
             var allowedCompanyId = await db.Users.AsNoTracking()
-                .Where(x => x.Id == currentUserId)
+                .Where(x => x.Id == currentUserId && !x.IsDeleted && x.IsActive &&
+                            x.CompanyProfile != null && x.CompanyProfile.IsActive && !x.CompanyProfile.IsDeleted)
                 .Select(x => x.CompanyProfileId)
                 .FirstOrDefaultAsync();
 

@@ -1,3 +1,4 @@
+using HTX586CONTRACT.Domain.Common;
 using HTX586CONTRACT.Domain.Companies;
 using HTX586CONTRACT.Domain.Contracts;
 using HTX586CONTRACT.Domain.Customers;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace HTX586CONTRACT.Domain.Identity;
 
-public class ApplicationUser : IdentityUser
+public class ApplicationUser : IdentityUser, ISoftDeletable
 {
     public string FullName { get; set; } = string.Empty;
     public string? EmployeeCode { get; set; }
@@ -58,6 +59,11 @@ public class ApplicationUser : IdentityUser
     public bool MustChangePassword { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
+
+    // Tài khoản bị "xóa" chỉ được ẩn và khóa đăng nhập, không xóa khỏi AspNetUsers.
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedBy { get; set; }
 
     public ICollection<Contract> Contracts { get; set; } = [];
     public ICollection<Customer> CreatedCustomers { get; set; } = [];

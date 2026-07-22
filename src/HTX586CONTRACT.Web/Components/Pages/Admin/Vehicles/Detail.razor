@@ -151,12 +151,13 @@ else
             var query = db.Vehicles.AsNoTracking()
                 .Include(x => x.CompanyProfile)
                 .Include(x => x.AssignedDriver)
-                .Where(x => x.Id == Id);
+                .Where(x => x.Id == Id && (x.CompanyProfile == null || !x.CompanyProfile.IsDeleted));
 
             if (!_isOwner)
             {
                 var companyProfileId = await db.Users.AsNoTracking()
-                    .Where(x => x.Id == currentUserId)
+                    .Where(x => x.Id == currentUserId && !x.IsDeleted && x.IsActive &&
+                            x.CompanyProfile != null && x.CompanyProfile.IsActive && !x.CompanyProfile.IsDeleted)
                     .Select(x => x.CompanyProfileId)
                     .FirstOrDefaultAsync();
 

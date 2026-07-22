@@ -196,7 +196,8 @@ else
             await using var db = await Factory.CreateDbContextAsync();
             var admin = await db.Users
                 .AsNoTracking()
-                .Where(x => x.Id == userId)
+                .Where(x => x.Id == userId && !x.IsDeleted && x.IsActive &&
+                            x.CompanyProfile != null && x.CompanyProfile.IsActive && !x.CompanyProfile.IsDeleted)
                 .Select(x => new
                 {
                     x.CompanyProfileId,

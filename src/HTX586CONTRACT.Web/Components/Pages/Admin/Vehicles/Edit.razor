@@ -157,7 +157,7 @@ else
             _drivers = await (from user in db.Users.AsNoTracking()
                               join userRole in db.UserRoles.AsNoTracking() on user.Id equals userRole.UserId
                               join role in db.Roles.AsNoTracking() on userRole.RoleId equals role.Id
-                              where role.Name == "Driver" && user.IsActive && user.CompanyProfileId != null
+                              where role.Name == "Driver" && user.IsActive && !user.IsDeleted && user.CompanyProfileId != null && user.CompanyProfile != null && user.CompanyProfile.IsActive && !user.CompanyProfile.IsDeleted
                               orderby user.FullName
                               select user).ToListAsync();
 
@@ -168,7 +168,8 @@ else
                 .ToHashSet(StringComparer.Ordinal);
 
             var item = await db.Vehicles.AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == Id);
+                .Include(x => x.CompanyProfile)
+                .FirstOrDefaultAsync(x => x.Id == Id && (x.CompanyProfile == null || !x.CompanyProfile.IsDeleted));
 
             if (item is null)
             {

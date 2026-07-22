@@ -108,7 +108,7 @@ else
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
             var user = await userManager.FindByIdAsync(userId);
-            if (user is null || !await userManager.IsInRoleAsync(user, OwnerRoleName))
+            if (user is null || user.IsDeleted || !user.IsActive || !await userManager.IsInRoleAsync(user, OwnerRoleName))
             {
                 return;
             }
@@ -161,7 +161,7 @@ else
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
             var user = await userManager.FindByIdAsync(_model.Id);
-            if (user is null || !await userManager.IsInRoleAsync(user, OwnerRoleName))
+            if (user is null || user.IsDeleted || !user.IsActive || !await userManager.IsInRoleAsync(user, OwnerRoleName))
             {
                 Snackbar.Add("Không tìm thấy tài khoản Owner.", Severity.Error);
                 return;
@@ -218,7 +218,7 @@ else
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
             var user = await userManager.FindByIdAsync(_model.Id);
-            if (user is null || !await userManager.IsInRoleAsync(user, OwnerRoleName))
+            if (user is null || user.IsDeleted || !user.IsActive || !await userManager.IsInRoleAsync(user, OwnerRoleName))
             {
                 Snackbar.Add("Không tìm thấy tài khoản Owner.", Severity.Error);
                 return;

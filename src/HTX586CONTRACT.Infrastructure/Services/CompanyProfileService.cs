@@ -19,7 +19,7 @@ public sealed class CompanyProfileService(
     public async Task<IReadOnlyList<CompanyProfileListItemDto>> GetListAsync(CompanyProfileFilter filter, CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
-        var query = db.CompanyProfiles.AsNoTracking().AsQueryable();
+        var query = db.CompanyProfiles.AsNoTracking().Where(x => !x.IsDeleted);
 
         if (!string.IsNullOrWhiteSpace(filter.Keyword))
         {
@@ -53,8 +53,8 @@ public sealed class CompanyProfileService(
                 RepresentativeName = x.RepresentativeName,
                 RepresentativeSignatureFileUrl = x.RepresentativeSignatureFileUrl,
                 IsActive = x.IsActive,
-                AdminCount = db.Users.Count(u => u.CompanyProfileId == x.Id && db.UserRoles.Any(ur => ur.UserId == u.Id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == "Admin"))),
-                DriverCount = db.Users.Count(u => u.CompanyProfileId == x.Id && db.UserRoles.Any(ur => ur.UserId == u.Id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == "Driver"))),
+                AdminCount = db.Users.Count(u => !u.IsDeleted && u.CompanyProfileId == x.Id && db.UserRoles.Any(ur => ur.UserId == u.Id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == "Admin"))),
+                DriverCount = db.Users.Count(u => !u.IsDeleted && u.CompanyProfileId == x.Id && db.UserRoles.Any(ur => ur.UserId == u.Id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == "Driver"))),
                 VehicleCount = db.Vehicles.Count(v => v.CompanyProfileId == x.Id),
                 ContractCount = x.Contracts.Count,
                 CreatedAt = x.CreatedAt
@@ -66,7 +66,7 @@ public sealed class CompanyProfileService(
     {
         await using var db = await factory.CreateDbContextAsync(ct);
         return await db.CompanyProfiles.AsNoTracking()
-            .Where(x => x.Id == id)
+            .Where(x => x.Id == id && !x.IsDeleted)
             .Select(x => new CompanyProfileDto
             {
                 Id = x.Id,
@@ -87,8 +87,8 @@ public sealed class CompanyProfileService(
                 RepresentativeSignatureFileUrl = x.RepresentativeSignatureFileUrl,
                 RepresentativeSignedAt = x.RepresentativeSignedAt,
                 IsActive = x.IsActive,
-                AdminCount = db.Users.Count(u => u.CompanyProfileId == x.Id && db.UserRoles.Any(ur => ur.UserId == u.Id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == "Admin"))),
-                DriverCount = db.Users.Count(u => u.CompanyProfileId == x.Id && db.UserRoles.Any(ur => ur.UserId == u.Id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == "Driver"))),
+                AdminCount = db.Users.Count(u => !u.IsDeleted && u.CompanyProfileId == x.Id && db.UserRoles.Any(ur => ur.UserId == u.Id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == "Admin"))),
+                DriverCount = db.Users.Count(u => !u.IsDeleted && u.CompanyProfileId == x.Id && db.UserRoles.Any(ur => ur.UserId == u.Id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == "Driver"))),
                 VehicleCount = db.Vehicles.Count(v => v.CompanyProfileId == x.Id),
                 ContractCount = x.Contracts.Count,
                 CreatedAt = x.CreatedAt,
@@ -101,7 +101,7 @@ public sealed class CompanyProfileService(
     {
         await using var db = await factory.CreateDbContextAsync(ct);
         return await db.CompanyProfiles.AsNoTracking()
-            .Where(x => x.IsActive)
+            .Where(x => x.IsActive && !x.IsDeleted)
             .OrderBy(x => x.CompanyName)
             .Select(x => new CompanyProfileOptionDto
             {
@@ -132,7 +132,7 @@ public sealed class CompanyProfileService(
     {
         Validate(request.CompanyName, request.TaxCode, request.Address, request.RepresentativeName, request.RepresentativeCitizenId);
         await using var db = await factory.CreateDbContextAsync(ct);
-        var entity = await db.CompanyProfiles.FirstOrDefaultAsync(x => x.Id == id, ct)
+        var entity = await db.CompanyProfiles.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, ct)
             ?? throw new KeyNotFoundException("Không tìm thấy công ty/văn phòng đại diện.");
 
         var taxCode = request.TaxCode.Trim();
@@ -147,17 +147,16 @@ public sealed class CompanyProfileService(
     public async Task DeleteAsync(Guid id, CancellationToken ct = default)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
-        var entity = await db.CompanyProfiles.FirstOrDefaultAsync(x => x.Id == id, ct)
+        var entity = await db.CompanyProfiles.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, ct)
             ?? throw new KeyNotFoundException("Không tìm thấy công ty/văn phòng đại diện.");
 
-        if (await db.Users.AnyAsync(x => x.CompanyProfileId == id, ct))
-            throw new InvalidOperationException("Không thể xóa vì CompanyProfile đang được gán cho tài khoản Admin/Driver.");
-        if (await db.Vehicles.AnyAsync(x => x.CompanyProfileId == id, ct))
-            throw new InvalidOperationException("Không thể xóa vì CompanyProfile đang được gán cho xe.");
-        if (await db.Contracts.AnyAsync(x => x.CompanyProfileId == id, ct))
-            throw new InvalidOperationException("Không thể xóa vì đơn vị đã được sử dụng trong hợp đồng.");
-
-        db.CompanyProfiles.Remove(entity);
+        // Không xóa vật lý và không cắt quan hệ lịch sử. Đơn vị chỉ bị ẩn khỏi
+        // danh sách/ô chọn; hợp đồng cũ vẫn giữ CompanyProfileId và snapshot.
+        entity.IsDeleted = true;
+        entity.DeletedAt = DateTime.UtcNow;
+        entity.DeletedBy = "OWNER_UI";
+        entity.IsActive = false;
+        entity.UpdatedAt = entity.DeletedAt;
         await db.SaveChangesAsync(ct);
     }
 

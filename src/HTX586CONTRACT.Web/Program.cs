@@ -73,6 +73,11 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(o =>
     o.Lockout.MaxFailedAccessAttempts = 5;
 })
     .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+
+// Tài khoản đã bị ẩn/khóa sẽ mất hiệu lực cookie nhanh chóng sau khi SecurityStamp thay đổi.
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+    options.ValidationInterval = TimeSpan.FromMinutes(1));
+
 var cookieSecurePolicy = builder.Environment.IsDevelopment()
     ? CookieSecurePolicy.SameAsRequest
     : CookieSecurePolicy.Always;

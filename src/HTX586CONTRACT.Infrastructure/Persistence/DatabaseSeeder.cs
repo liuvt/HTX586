@@ -30,6 +30,7 @@ public static class DatabaseSeeder
         await db.Database.EnsureCreatedAsync();
         await EnsureDriverRegistrationColumnsAsync(db);
         await EnsureDriverNotificationTableAsync(db);
+        await EnsureSoftDeleteColumnsAsync(db);
         await EnsureUniqueVehicleDriverAssignmentAsync(db);
 
         await SeedRolesAsync(roleManager);
@@ -45,6 +46,109 @@ public static class DatabaseSeeder
             await SeedDemoDataAsync(db, userManager, configuration);
 
         await BackfillContractSnapshotsAsync(db);
+    }
+
+
+    private static async Task EnsureSoftDeleteColumnsAsync(ApplicationDbContext db)
+    {
+        // Hỗ trợ database cũ được tạo bằng EnsureCreated: bổ sung cột soft delete
+        // trước khi bất kỳ query ApplicationUser/CompanyProfile nào được thực hiện.
+        await db.Database.ExecuteSqlRawAsync(@"
+IF COL_LENGTH('AspNetUsers','IsDeleted') IS NULL
+    ALTER TABLE AspNetUsers ADD IsDeleted bit NOT NULL CONSTRAINT DF_AspNetUsers_IsDeleted DEFAULT 0;
+IF COL_LENGTH('AspNetUsers','DeletedAt') IS NULL
+    ALTER TABLE AspNetUsers ADD DeletedAt datetime2 NULL;
+IF COL_LENGTH('AspNetUsers','DeletedBy') IS NULL
+    ALTER TABLE AspNetUsers ADD DeletedBy nvarchar(450) NULL;
+
+IF COL_LENGTH('CompanyProfiles','IsDeleted') IS NULL
+    ALTER TABLE CompanyProfiles ADD IsDeleted bit NOT NULL CONSTRAINT DF_CompanyProfiles_IsDeleted DEFAULT 0;
+IF COL_LENGTH('CompanyProfiles','DeletedAt') IS NULL
+    ALTER TABLE CompanyProfiles ADD DeletedAt datetime2 NULL;
+IF COL_LENGTH('CompanyProfiles','DeletedBy') IS NULL
+    ALTER TABLE CompanyProfiles ADD DeletedBy nvarchar(450) NULL;
+
+IF OBJECT_ID(N'[dbo].[ContractAuditLogs]', N'U') IS NOT NULL AND COL_LENGTH('ContractAuditLogs','IsDeleted') IS NULL
+    ALTER TABLE ContractAuditLogs ADD IsDeleted bit NOT NULL CONSTRAINT DF_ContractAuditLogs_IsDeleted DEFAULT 0;
+IF OBJECT_ID(N'[dbo].[ContractAuditLogs]', N'U') IS NOT NULL AND COL_LENGTH('ContractAuditLogs','DeletedAt') IS NULL
+    ALTER TABLE ContractAuditLogs ADD DeletedAt datetime2 NULL;
+IF OBJECT_ID(N'[dbo].[ContractAuditLogs]', N'U') IS NOT NULL AND COL_LENGTH('ContractAuditLogs','DeletedBy') IS NULL
+    ALTER TABLE ContractAuditLogs ADD DeletedBy nvarchar(450) NULL;
+
+IF OBJECT_ID(N'[dbo].[DriverNotifications]', N'U') IS NOT NULL AND COL_LENGTH('DriverNotifications','IsDeleted') IS NULL
+    ALTER TABLE DriverNotifications ADD IsDeleted bit NOT NULL CONSTRAINT DF_DriverNotifications_IsDeleted DEFAULT 0;
+IF OBJECT_ID(N'[dbo].[DriverNotifications]', N'U') IS NOT NULL AND COL_LENGTH('DriverNotifications','DeletedAt') IS NULL
+    ALTER TABLE DriverNotifications ADD DeletedAt datetime2 NULL;
+IF OBJECT_ID(N'[dbo].[DriverNotifications]', N'U') IS NOT NULL AND COL_LENGTH('DriverNotifications','DeletedBy') IS NULL
+    ALTER TABLE DriverNotifications ADD DeletedBy nvarchar(450) NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[AspNetUsers]') AND name = N'IX_AspNetUsers_IsDeleted')
+    CREATE INDEX IX_AspNetUsers_IsDeleted ON AspNetUsers(IsDeleted);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[CompanyProfiles]') AND name = N'IX_CompanyProfiles_IsDeleted')
+    CREATE INDEX IX_CompanyProfiles_IsDeleted ON CompanyProfiles(IsDeleted);
+
+IF OBJECT_ID(N'[dbo].[ContractAuditLogs]', N'U') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[ContractAuditLogs]') AND name = N'IX_ContractAuditLogs_IsDeleted')
+    CREATE INDEX IX_ContractAuditLogs_IsDeleted ON ContractAuditLogs(IsDeleted);
+IF OBJECT_ID(N'[dbo].[DriverNotifications]', N'U') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[DriverNotifications]') AND name = N'IX_DriverNotifications_IsDeleted')
+    CREATE INDEX IX_DriverNotifications_IsDeleted ON DriverNotifications(IsDeleted);
+
+-- Database cũ có thể còn ON DELETE CASCADE/SET NULL. Chuyển về NO ACTION
+-- để một lệnh DELETE vật lý không thể kéo theo việc mất dữ liệu liên quan.
+IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = N'FK_AspNetUsers_CompanyProfiles_CompanyProfileId' AND delete_referential_action <> 0)
+BEGIN
+    ALTER TABLE [dbo].[AspNetUsers] DROP CONSTRAINT [FK_AspNetUsers_CompanyProfiles_CompanyProfileId];
+    ALTER TABLE [dbo].[AspNetUsers] WITH CHECK ADD CONSTRAINT [FK_AspNetUsers_CompanyProfiles_CompanyProfileId]
+        FOREIGN KEY ([CompanyProfileId]) REFERENCES [dbo].[CompanyProfiles]([Id]);
+    ALTER TABLE [dbo].[AspNetUsers] CHECK CONSTRAINT [FK_AspNetUsers_CompanyProfiles_CompanyProfileId];
+END;
+
+IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = N'FK_DriverNotifications_AspNetUsers_DriverId' AND delete_referential_action <> 0)
+BEGIN
+    ALTER TABLE [dbo].[DriverNotifications] DROP CONSTRAINT [FK_DriverNotifications_AspNetUsers_DriverId];
+    ALTER TABLE [dbo].[DriverNotifications] WITH CHECK ADD CONSTRAINT [FK_DriverNotifications_AspNetUsers_DriverId]
+        FOREIGN KEY ([DriverId]) REFERENCES [dbo].[AspNetUsers]([Id]);
+    ALTER TABLE [dbo].[DriverNotifications] CHECK CONSTRAINT [FK_DriverNotifications_AspNetUsers_DriverId];
+END;
+
+IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = N'FK_Vehicles_AspNetUsers_AssignedDriverId' AND delete_referential_action <> 0)
+BEGIN
+    ALTER TABLE [dbo].[Vehicles] DROP CONSTRAINT [FK_Vehicles_AspNetUsers_AssignedDriverId];
+    ALTER TABLE [dbo].[Vehicles] WITH CHECK ADD CONSTRAINT [FK_Vehicles_AspNetUsers_AssignedDriverId]
+        FOREIGN KEY ([AssignedDriverId]) REFERENCES [dbo].[AspNetUsers]([Id]);
+    ALTER TABLE [dbo].[Vehicles] CHECK CONSTRAINT [FK_Vehicles_AspNetUsers_AssignedDriverId];
+END;
+
+IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = N'FK_Vehicles_CompanyProfiles_CompanyProfileId' AND delete_referential_action <> 0)
+BEGIN
+    ALTER TABLE [dbo].[Vehicles] DROP CONSTRAINT [FK_Vehicles_CompanyProfiles_CompanyProfileId];
+    ALTER TABLE [dbo].[Vehicles] WITH CHECK ADD CONSTRAINT [FK_Vehicles_CompanyProfiles_CompanyProfileId]
+        FOREIGN KEY ([CompanyProfileId]) REFERENCES [dbo].[CompanyProfiles]([Id]);
+    ALTER TABLE [dbo].[Vehicles] CHECK CONSTRAINT [FK_Vehicles_CompanyProfiles_CompanyProfileId];
+END;
+
+IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = N'FK_ContractPassengers_Contracts_ContractId' AND delete_referential_action <> 0)
+BEGIN
+    ALTER TABLE [dbo].[ContractPassengers] DROP CONSTRAINT [FK_ContractPassengers_Contracts_ContractId];
+    ALTER TABLE [dbo].[ContractPassengers] WITH CHECK ADD CONSTRAINT [FK_ContractPassengers_Contracts_ContractId]
+        FOREIGN KEY ([ContractId]) REFERENCES [dbo].[Contracts]([Id]);
+    ALTER TABLE [dbo].[ContractPassengers] CHECK CONSTRAINT [FK_ContractPassengers_Contracts_ContractId];
+END;
+
+-- Cho phép một SortOrder mới sau khi hành khách cũ đã bị ẩn mềm.
+IF EXISTS
+(
+    SELECT 1 FROM sys.indexes
+    WHERE object_id = OBJECT_ID(N'[dbo].[ContractPassengers]')
+      AND name = N'UX_ContractPassengers_Contract_SortOrder'
+      AND filter_definition IS NULL
+)
+BEGIN
+    DROP INDEX UX_ContractPassengers_Contract_SortOrder ON ContractPassengers;
+    CREATE UNIQUE INDEX UX_ContractPassengers_Contract_SortOrder
+        ON ContractPassengers(ContractId, SortOrder)
+        WHERE IsDeleted = 0;
+END
+");
     }
 
     private static async Task EnsureDriverRegistrationColumnsAsync(ApplicationDbContext db)
@@ -78,13 +182,18 @@ BEGIN
         [IsRead] bit NOT NULL CONSTRAINT [DF_DriverNotifications_IsRead] DEFAULT 0,
         [CreatedAt] datetime2 NOT NULL,
         [ReadAt] datetime2 NULL,
+        [IsDeleted] bit NOT NULL CONSTRAINT [DF_DriverNotifications_IsDeleted] DEFAULT 0,
+        [DeletedAt] datetime2 NULL,
+        [DeletedBy] nvarchar(450) NULL,
         CONSTRAINT [PK_DriverNotifications] PRIMARY KEY ([Id]),
         CONSTRAINT [FK_DriverNotifications_AspNetUsers_DriverId]
-            FOREIGN KEY ([DriverId]) REFERENCES [dbo].[AspNetUsers]([Id]) ON DELETE CASCADE
+            FOREIGN KEY ([DriverId]) REFERENCES [dbo].[AspNetUsers]([Id])
     );
 
     CREATE INDEX [IX_DriverNotifications_Driver_Read_CreatedAt]
         ON [dbo].[DriverNotifications] ([DriverId], [IsRead], [CreatedAt] DESC);
+    CREATE INDEX [IX_DriverNotifications_IsDeleted]
+        ON [dbo].[DriverNotifications] ([IsDeleted]);
 END
 ");
     }
@@ -162,7 +271,9 @@ END
     {
         // Nếu database đã có Owner thì không tạo thêm Owner mới.
         // Đồng thời dọn role để Owner không còn nằm chung luồng Admin/Driver.
-        var existingOwners = await userManager.GetUsersInRoleAsync("Owner");
+        var existingOwners = (await userManager.GetUsersInRoleAsync("Owner"))
+            .Where(x => !x.IsDeleted)
+            .ToList();
         if (existingOwners.Count > 0)
         {
             foreach (var owner in existingOwners)
@@ -180,6 +291,10 @@ END
         var configuredUser = await userManager.FindByNameAsync(userName);
         if (configuredUser is not null)
         {
+            if (configuredUser.IsDeleted)
+                throw new InvalidOperationException(
+                    $"Tài khoản seed '{userName}' đã bị ẩn mềm. Chỉ quản trị database mới được phép khôi phục hoặc đổi Seed:OwnerUserName.");
+
             await EnsureOwnerOnlyAsync(userManager, configuredUser);
             return;
         }
@@ -221,13 +336,15 @@ END
             legacyAdminUserName = "admin";
 
         var legacyAdmin = await userManager.FindByNameAsync(legacyAdminUserName);
-        if (legacyAdmin is not null)
+        if (legacyAdmin is not null && !legacyAdmin.IsDeleted)
         {
             await EnsureOwnerOnlyAsync(userManager, legacyAdmin);
             return;
         }
 
-        var admins = await userManager.GetUsersInRoleAsync("Admin");
+        var admins = (await userManager.GetUsersInRoleAsync("Admin"))
+            .Where(x => !x.IsDeleted)
+            .ToList();
         var fallbackAdmin = admins.FirstOrDefault(x => x.IsActive) ?? admins.FirstOrDefault();
         if (fallbackAdmin is not null)
         {
@@ -244,6 +361,9 @@ END
         UserManager<ApplicationUser> userManager,
         ApplicationUser user)
     {
+        if (user.IsDeleted)
+            throw new InvalidOperationException("Không thể tự động kích hoạt lại tài khoản Owner đã bị ẩn mềm.");
+
         if (!await userManager.IsInRoleAsync(user, "Owner"))
             Ensure(await userManager.AddToRoleAsync(user, "Owner"), "Không thể gán quyền Owner");
 
@@ -425,7 +545,7 @@ END
         IConfiguration configuration)
     {
         var company = await db.CompanyProfiles
-            .FirstOrDefaultAsync(x => x.TaxCode == "1801774247");
+            .FirstOrDefaultAsync(x => x.TaxCode == "1801774247" && x.IsActive && !x.IsDeleted);
 
         if (company is null)
             return;
@@ -439,6 +559,9 @@ END
         {
             var userName = $"driverdemo{index:00}";
             var driver = await userManager.FindByNameAsync(userName);
+
+            if (driver?.IsDeleted == true)
+                continue;
 
             if (driver is null)
             {
@@ -483,12 +606,19 @@ END
             drivers.Add(driver);
         }
 
+        if (drivers.Count == 0)
+            return;
+
         var vehicles = new List<Vehicle>();
         for (var index = 1; index <= 10; index++)
         {
             var plate = $"65A-{58600 + index}";
             var vehicle = await db.Vehicles
+                .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(x => x.PlateNumber == plate);
+
+            if (vehicle?.IsDeleted == true)
+                continue;
 
             if (vehicle is null)
             {
@@ -527,6 +657,14 @@ END
         }
 
         await db.SaveChangesAsync();
+
+        var pairCount = Math.Min(drivers.Count, vehicles.Count);
+        if (pairCount == 0)
+            return;
+        if (drivers.Count != pairCount)
+            drivers = drivers.Take(pairCount).ToList();
+        if (vehicles.Count != pairCount)
+            vehicles = vehicles.Take(pairCount).ToList();
 
         var customers = new List<Customer>();
         for (var index = 1; index <= 5; index++)

@@ -74,7 +74,8 @@
         await using (var db = await Factory.CreateDbContextAsync())
         {
             _currentUserName = await db.Users.AsNoTracking()
-                .Where(x => x.Id == _currentUserId)
+                .Where(x => x.Id == _currentUserId && !x.IsDeleted && x.IsActive &&
+                            x.CompanyProfile != null && x.CompanyProfile.IsActive && !x.CompanyProfile.IsDeleted)
                 .Select(x => x.FullName)
                 .FirstOrDefaultAsync() ?? auth.User.Identity?.Name ?? "Tài khoản hiện tại";
         }

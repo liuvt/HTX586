@@ -1,5 +1,12 @@
+using HTX586CONTRACT.Domain.Common;
+
 namespace HTX586CONTRACT.Domain.Contracts;
-public class ContractAuditLog
+
+/// <summary>
+/// Nhật ký hợp đồng là dữ liệu append-only. Việc triển khai ISoftDeletable
+/// bảo đảm một lệnh Remove vô tình cũng chỉ ẩn bản ghi, không xóa vật lý.
+/// </summary>
+public class ContractAuditLog : ISoftDeletable
 {
     public long Id { get; set; }
     public Guid ContractId { get; set; }
@@ -11,5 +18,8 @@ public class ContractAuditLog
     public string? IpAddress { get; set; }
     public string? DeviceId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedBy { get; set; }
     public Contract Contract { get; set; } = null!;
 }

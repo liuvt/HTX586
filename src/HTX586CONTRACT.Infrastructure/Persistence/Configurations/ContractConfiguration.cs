@@ -180,7 +180,8 @@ public sealed class ContractConfiguration : IEntityTypeConfiguration<Contract>
         builder.HasMany(x => x.Passengers)
             .WithOne(x => x.Contract)
             .HasForeignKey(x => x.ContractId)
-            .OnDelete(DeleteBehavior.Cascade);
+            // Không cascade delete: hành khách là dữ liệu lịch sử của hợp đồng.
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(x => x.Signatures)
             .WithOne(x => x.Contract)

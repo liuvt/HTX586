@@ -76,13 +76,13 @@ public sealed class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
         builder.HasOne(x => x.CompanyProfile)
             .WithMany(x => x.Vehicles)
             .HasForeignKey(x => x.CompanyProfileId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Driver chỉ tự tạo hợp đồng khi đã được gán xe đang hoạt động.
         builder.HasOne(x => x.AssignedDriver)
             .WithMany()
             .HasForeignKey(x => x.AssignedDriverId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(x => x.PlateNumber)
             .IsUnique()

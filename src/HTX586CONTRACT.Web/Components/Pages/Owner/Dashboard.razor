@@ -246,7 +246,7 @@
     {
         await using var db = await Factory.CreateDbContextAsync();
         _companies = await db.CompanyProfiles.AsNoTracking()
-            .Where(x => x.IsActive)
+            .Where(x => x.IsActive && !x.IsDeleted)
             .OrderBy(x => x.CompanyName)
             .ThenBy(x => x.BranchName)
             .ToListAsync();
@@ -279,12 +279,12 @@
 
             var contractQuery = db.Contracts.AsNoTracking()
                 .Where(x => (x.StartTime ?? x.CreatedAt) >= from && (x.StartTime ?? x.CreatedAt) < to);
-            var vehicleQuery = db.Vehicles.AsNoTracking().Where(x => x.IsActive);
+            var vehicleQuery = db.Vehicles.AsNoTracking().Where(x => x.IsActive && !x.IsDeleted && (x.CompanyProfile == null || !x.CompanyProfile.IsDeleted));
             var driverQuery =
                 from user in db.Users.AsNoTracking()
                 join userRole in db.UserRoles.AsNoTracking() on user.Id equals userRole.UserId
                 join role in db.Roles.AsNoTracking() on userRole.RoleId equals role.Id
-                where role.Name == "Driver" && user.IsActive
+                where role.Name == "Driver" && user.IsActive && !user.IsDeleted && user.CompanyProfile != null && user.CompanyProfile.IsActive && !user.CompanyProfile.IsDeleted
                 select user;
 
             if (_companyProfileId.HasValue)

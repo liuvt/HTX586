@@ -412,7 +412,7 @@ Công ty/Văn phòng, chủ sở hữu xe và tài xế dùng chữ ký cố đ�
         var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         _currentUserId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
         await using var db = await Factory.CreateDbContextAsync();
-        var companyQuery = db.CompanyProfiles.AsNoTracking().Where(x => x.IsActive);
+        var companyQuery = db.CompanyProfiles.AsNoTracking().Where(x => x.IsActive && !x.IsDeleted);
 
         _companies = await companyQuery
             .OrderBy(x => x.CompanyName)
@@ -422,7 +422,7 @@ Công ty/Văn phòng, chủ sở hữu xe và tài xế dùng chữ ký cố đ�
         var driverQuery = from user in db.Users.Include(x => x.CompanyProfile)
                           join userRole in db.UserRoles on user.Id equals userRole.UserId
                           join role in db.Roles on userRole.RoleId equals role.Id
-                          where role.Name == "Driver" && user.IsActive && user.CompanyProfileId != null
+                          where role.Name == "Driver" && user.IsActive && !user.IsDeleted && user.CompanyProfileId != null && user.CompanyProfile != null && user.CompanyProfile.IsActive && !user.CompanyProfile.IsDeleted
                           select user;
 
 

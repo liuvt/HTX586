@@ -65,7 +65,7 @@
             <MudTd DataLabel="Trạng thái"><ContractStatusChip Status="context.Status" /></MudTd>
             <MudTd>
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Href="@($"/admin/contracts/{context.Id}")" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteAsync(context))" />
+                <MudIconButton Icon="@Icons.Material.Filled.VisibilityOff" Color="Color.Warning" OnClick="@(() => DeleteAsync(context))" />
             </MudTd>
         </RowTemplate>
         <NoRecordsContent><MudText>Chưa có hợp đồng.</MudText></NoRecordsContent>
@@ -89,7 +89,8 @@
 
         await using var db = await Factory.CreateDbContextAsync();
         _currentCompanyProfileId = await db.Users.AsNoTracking()
-            .Where(x => x.Id == _currentUserId)
+            .Where(x => x.Id == _currentUserId && !x.IsDeleted && x.IsActive &&
+                            x.CompanyProfile != null && x.CompanyProfile.IsActive && !x.CompanyProfile.IsDeleted)
             .Select(x => x.CompanyProfileId)
             .FirstOrDefaultAsync();
 
@@ -123,16 +124,22 @@
     private async Task DeleteAsync(ContractListItemDto item)
     {
         var confirmed = await Dialog.ShowMessageBoxAsync(
-            "Xóa hợp đồng",
-            $"Xóa hợp đồng {item.ContractNumber}?",
-            yesText: "Xóa",
+            "Ẩn hợp đồng",
+            $"Ẩn hợp đồng {item.ContractNumber} khỏi danh sách? Dữ liệu vẫn được giữ nguyên trong database và không bị xóa vật lý.",
+            yesText: "Ẩn khỏi giao diện",
             cancelText: "Hủy");
 
         if (confirmed != true)
             return;
 
-        await ContractService.DeleteAsync(item.Id, _currentUserId);
-        Snackbar.Add("Đã xóa hợp đồng.", Severity.Success);
+        var hidden = await ContractService.DeleteAsync(item.Id, _currentUserId);
+        if (!hidden)
+        {
+            Snackbar.Add("Không thể ẩn hợp đồng ở trạng thái hiện tại hoặc bạn không có quyền thao tác.", Severity.Warning);
+            return;
+        }
+
+        Snackbar.Add("Đã ẩn hợp đồng khỏi giao diện. Dữ liệu gốc vẫn còn trong database.", Severity.Success);
         await LoadAsync();
     }
 

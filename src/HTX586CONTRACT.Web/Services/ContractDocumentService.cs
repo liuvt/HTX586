@@ -87,7 +87,7 @@ public sealed class ContractDocumentService(
 
             var callerIsActive = await db.Users
                 .AsNoTracking()
-                .AnyAsync(x => x.Id == currentUserId && x.IsActive, ct);
+                .AnyAsync(x => x.Id == currentUserId && x.IsActive && !x.IsDeleted, ct);
 
             var callerRoles = await (
                     from userRole in db.UserRoles
@@ -121,7 +121,7 @@ public sealed class ContractDocumentService(
                     .FromSqlInterpolated($"""
                         SELECT *
                         FROM [dbo].[Contracts] WITH (UPDLOCK, HOLDLOCK, ROWLOCK)
-                        WHERE [Id] = {contractId}
+                        WHERE [Id] = {contractId} AND [IsDeleted] = 0
                         """)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(ct)

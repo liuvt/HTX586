@@ -76,7 +76,7 @@ public sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<Appl
         builder.HasOne(x => x.CompanyProfile)
             .WithMany(x => x.Users)
             .HasForeignKey(x => x.CompanyProfileId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(x => x.CompanyProfileId)
             .HasDatabaseName("IX_AspNetUsers_CompanyProfileId");
@@ -90,7 +90,13 @@ public sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<Appl
             .HasFilter("[CitizenId] IS NOT NULL")
             .HasDatabaseName("IX_AspNetUsers_CitizenId");
 
+        builder.Property(x => x.DeletedBy)
+            .HasMaxLength(450);
+
         builder.HasIndex(x => x.IsActive)
             .HasDatabaseName("IX_AspNetUsers_IsActive");
+
+        builder.HasIndex(x => x.IsDeleted)
+            .HasDatabaseName("IX_AspNetUsers_IsDeleted");
     }
 }

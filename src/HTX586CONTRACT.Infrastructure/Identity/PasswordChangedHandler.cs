@@ -38,11 +38,12 @@ public sealed class PasswordChangedHandler
             .Select(x => new
             {
                 x.IsActive,
+                x.IsDeleted,
                 x.MustChangePassword
             })
             .FirstOrDefaultAsync();
 
-        if (user is null || !user.IsActive || user.MustChangePassword)
+        if (user is null || user.IsDeleted || !user.IsActive || user.MustChangePassword)
             return;
 
         context.Succeed(requirement);

@@ -16,6 +16,8 @@ public sealed class ContractAuditLogConfiguration : IEntityTypeConfiguration<Con
         builder.Property(x => x.UserName).HasMaxLength(200);
         builder.Property(x => x.IpAddress).HasMaxLength(64);
         builder.Property(x => x.DeviceId).HasMaxLength(200);
+        builder.Property(x => x.DeletedAt).HasColumnType("datetime2");
+        builder.Property(x => x.DeletedBy).HasMaxLength(450);
 
         builder.HasOne(x => x.Contract)
             .WithMany(x => x.AuditLogs)
@@ -24,7 +26,7 @@ public sealed class ContractAuditLogConfiguration : IEntityTypeConfiguration<Con
 
         // Contract có query filter IsDeleted, nên AuditLog cũng có filter tương ứng
         // để tránh warning EF Core về required navigation bị filter mất Contract.
-        builder.HasQueryFilter(x => !x.Contract.IsDeleted);
+        builder.HasQueryFilter(x => !x.IsDeleted && !x.Contract.IsDeleted);
 
         builder.HasIndex(x => new { x.ContractId, x.CreatedAt })
             .IsDescending(false, true)
@@ -33,5 +35,8 @@ public sealed class ContractAuditLogConfiguration : IEntityTypeConfiguration<Con
         builder.HasIndex(x => new { x.UserId, x.CreatedAt })
             .IsDescending(false, true)
             .HasDatabaseName("IX_ContractAuditLogs_User_CreatedAt");
+
+        builder.HasIndex(x => x.IsDeleted)
+            .HasDatabaseName("IX_ContractAuditLogs_IsDeleted");
     }
 }

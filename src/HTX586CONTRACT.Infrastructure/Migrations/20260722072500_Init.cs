@@ -49,7 +49,10 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                     RepresentativeSignedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedBy = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -144,6 +147,9 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                     MustChangePassword = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedBy = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -167,7 +173,7 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                         column: x => x.CompanyProfileId,
                         principalTable: "CompanyProfiles",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -342,7 +348,10 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                     RelatedVehicleId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     IsRead = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ReadAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    ReadAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedBy = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -352,7 +361,7 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                         column: x => x.DriverId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -398,13 +407,13 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                         column: x => x.AssignedDriverId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Vehicles_CompanyProfiles_CompanyProfileId",
                         column: x => x.CompanyProfileId,
                         principalTable: "CompanyProfiles",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -561,7 +570,10 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                     UserName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     IpAddress = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                     DeviceId = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedBy = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -601,7 +613,7 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                         column: x => x.ContractId,
                         principalTable: "Contracts",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -702,6 +714,11 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                 column: "IsActive");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_IsDeleted",
+                table: "AspNetUsers",
+                column: "IsDeleted");
+
+            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
@@ -726,6 +743,11 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                 column: "IsActive");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CompanyProfiles_IsDeleted",
+                table: "CompanyProfiles",
+                column: "IsDeleted");
+
+            migrationBuilder.CreateIndex(
                 name: "UX_CompanyProfiles_TaxCode",
                 table: "CompanyProfiles",
                 column: "TaxCode",
@@ -743,6 +765,11 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                 descending: new[] { false, true });
 
             migrationBuilder.CreateIndex(
+                name: "IX_ContractAuditLogs_IsDeleted",
+                table: "ContractAuditLogs",
+                column: "IsDeleted");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ContractAuditLogs_User_CreatedAt",
                 table: "ContractAuditLogs",
                 columns: new[] { "UserId", "CreatedAt" },
@@ -752,7 +779,8 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                 name: "UX_ContractPassengers_Contract_SortOrder",
                 table: "ContractPassengers",
                 columns: new[] { "ContractId", "SortOrder" },
-                unique: true);
+                unique: true,
+                filter: "[IsDeleted] = 0");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Contracts_CompanyProfile_CreatedAt",
@@ -859,6 +887,11 @@ namespace HTX586CONTRACT.Infrastructure.Migrations
                 table: "DriverNotifications",
                 columns: new[] { "DriverId", "IsRead", "CreatedAt" },
                 descending: new[] { false, false, true });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DriverNotifications_IsDeleted",
+                table: "DriverNotifications",
+                column: "IsDeleted");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Vehicles_CompanyProfileId",

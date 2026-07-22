@@ -24,7 +24,7 @@ public sealed class MasterSignatureService(
 
         await using var db = await factory.CreateDbContextAsync(ct);
         var updated = await db.CompanyProfiles
-            .Where(x => x.Id == companyId)
+            .Where(x => x.Id == companyId && !x.IsDeleted)
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(x => x.RepresentativeSignatureFileUrl, stored.RelativeUrl)
                 .SetProperty(x => x.RepresentativeSignatureHash, stored.Sha256Hash)
@@ -69,7 +69,7 @@ public sealed class MasterSignatureService(
     {
         await using (var checkDb = await factory.CreateDbContextAsync(ct))
         {
-            var alreadySigned = await checkDb.Users.AsNoTracking().AnyAsync(x => x.Id == userId && x.DriverSignedAt != null, ct);
+            var alreadySigned = await checkDb.Users.AsNoTracking().AnyAsync(x => x.Id == userId && !x.IsDeleted && x.DriverSignedAt != null, ct);
             if (alreadySigned) throw new InvalidOperationException("Tài xế đã tạo chữ ký lần đầu. Không thể ký lại.");
         }
         return await SaveDriverSignatureAsync(userId, dataUrl, ct);
@@ -91,7 +91,7 @@ public sealed class MasterSignatureService(
 
         await using var db = await factory.CreateDbContextAsync(ct);
         var updated = await db.Users
-            .Where(x => x.Id == userId
+            .Where(x => x.Id == userId && !x.IsDeleted
                 && db.UserRoles.Any(ur => ur.UserId == x.Id
                     && db.Roles.Any(role => role.Id == ur.RoleId && role.Name == "Driver")))
             .ExecuteUpdateAsync(setters => setters

@@ -17,11 +17,18 @@ public sealed class DriverNotificationConfiguration : IEntityTypeConfiguration<D
         builder.Property(x => x.LinkUrl).HasMaxLength(500);
         builder.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
         builder.Property(x => x.ReadAt).HasColumnType("datetime2");
+        builder.Property(x => x.DeletedAt).HasColumnType("datetime2");
+        builder.Property(x => x.DeletedBy).HasMaxLength(450);
 
         builder.HasOne(x => x.Driver)
             .WithMany(x => x.DriverNotifications)
             .HasForeignKey(x => x.DriverId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasQueryFilter(x => !x.IsDeleted);
+
+        builder.HasIndex(x => x.IsDeleted)
+            .HasDatabaseName("IX_DriverNotifications_IsDeleted");
 
         builder.HasIndex(x => new { x.DriverId, x.IsRead, x.CreatedAt })
             .IsDescending(false, false, true)

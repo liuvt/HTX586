@@ -450,7 +450,7 @@ else
             var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             _userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             await using var db = await Factory.CreateDbContextAsync();
-            _driver = await db.Users.Include(x => x.CompanyProfile).FirstOrDefaultAsync(x => x.Id == _userId);
+            _driver = await db.Users.Include(x => x.CompanyProfile).FirstOrDefaultAsync(x => x.Id == _userId && x.IsActive && !x.IsDeleted && x.CompanyProfile != null && x.CompanyProfile.IsActive && !x.CompanyProfile.IsDeleted);
             _customers = await db.Customers.AsNoTracking()
                 .Where(x => x.CreatedByDriverId == _userId && !x.PhoneNumber.StartsWith("PEND"))
                 .OrderByDescending(x => x.LastUsedAt)

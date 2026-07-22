@@ -139,7 +139,8 @@
             var currentUserId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             await using var db = await Factory.CreateDbContextAsync();
             _adminCompanyProfileId = await db.Users.AsNoTracking()
-                .Where(x => x.Id == currentUserId)
+                .Where(x => x.Id == currentUserId && !x.IsDeleted && x.IsActive &&
+                            x.CompanyProfile != null && x.CompanyProfile.IsActive && !x.CompanyProfile.IsDeleted)
                 .Select(x => x.CompanyProfileId)
                 .FirstOrDefaultAsync();
         }
@@ -158,6 +159,7 @@
             var query = db.Vehicles.AsNoTracking()
                 .Include(x => x.CompanyProfile)
                 .Include(x => x.AssignedDriver)
+                .Where(x => x.CompanyProfile == null || !x.CompanyProfile.IsDeleted)
                 .AsQueryable();
 
             if (!_isOwner)

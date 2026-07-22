@@ -21,7 +21,7 @@ public sealed class AdminAccountService(
         // Màn /admin/accounts chỉ quản lý tài khoản Admin.
         // Owner được tách khỏi luồng Admin để không bị lộ/chỉnh sửa như một Admin thường.
         var query = from user in db.Users.AsNoTracking()
-                    where db.UserRoles.Any(ur => ur.UserId == user.Id &&
+                    where !user.IsDeleted && user.CompanyProfile != null && !user.CompanyProfile.IsDeleted && db.UserRoles.Any(ur => ur.UserId == user.Id &&
                               db.Roles.Any(r => r.Id == ur.RoleId && r.Name == "Admin"))
                           && !db.UserRoles.Any(ur => ur.UserId == user.Id &&
                               db.Roles.Any(r => r.Id == ur.RoleId && r.Name == "Owner"))
@@ -100,7 +100,11 @@ public sealed class AdminAccountService(
         var roleResult = await userManager.AddToRoleAsync(user, "Admin");
         if (!roleResult.Succeeded)
         {
-            await userManager.DeleteAsync(user);
+            user.IsDeleted = true;
+            user.DeletedAt = DateTime.UtcNow;
+            user.DeletedBy = "ADMIN_CREATE_ROLLBACK";
+            user.IsActive = false;
+            Ensure(await userManager.UpdateAsync(user));
             Ensure(roleResult);
         }
 
@@ -115,7 +119,7 @@ public sealed class AdminAccountService(
     {
         await using var db = await factory.CreateDbContextAsync(ct);
         var row = await db.Users.AsNoTracking()
-            .Where(x => x.Id == userId
+            .Where(x => x.Id == userId && !x.IsDeleted && x.CompanyProfile != null && !x.CompanyProfile.IsDeleted
                 && db.UserRoles.Any(ur => ur.UserId == x.Id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == "Admin"))
                 && !db.UserRoles.Any(ur => ur.UserId == x.Id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == "Owner")))
             .Select(x => new
@@ -168,7 +172,7 @@ public sealed class AdminAccountService(
             await EnsureCompanyAsync(request.CompanyProfileId.Value, ct);
 
         var user = await userManager.FindByIdAsync(request.UserId);
-        if (user is null) return ServiceResult.Failure("Không tìm thấy tài khoản.");
+        if (user is null || user.IsDeleted) return ServiceResult.Failure("Không tìm thấy tài khoản.");
         if (!await IsAdminOnlyAsync(user))
             return ServiceResult.Failure("Màn này chỉ được cập nhật tài khoản Admin. Owner được quản lý ở luồng riêng.");
 
@@ -202,7 +206,7 @@ public sealed class AdminAccountService(
             return ServiceResult.Failure("Thiếu mã tài khoản.");
 
         var user = await userManager.FindByIdAsync(userId);
-        if (user is null)
+        if (user is null || user.IsDeleted)
             return ServiceResult.Failure("Không tìm thấy tài khoản.");
 
         if (!await IsAdminOnlyAsync(user))
@@ -261,7 +265,7 @@ public sealed class AdminAccountService(
     private async Task EnsureCompanyAsync(Guid companyId, CancellationToken ct)
     {
         await using var db = await factory.CreateDbContextAsync(ct);
-        if (!await db.CompanyProfiles.AnyAsync(x => x.Id == companyId && x.IsActive, ct))
+        if (!await db.CompanyProfiles.AnyAsync(x => x.Id == companyId && x.IsActive && !x.IsDeleted, ct))
             throw new InvalidOperationException("CompanyProfile không tồn tại hoặc đã ngừng hoạt động.");
     }
 

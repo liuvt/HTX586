@@ -77,7 +77,7 @@ public sealed class ExcelReportService(IDbContextFactory<ApplicationDbContext> f
         var query = db.Users
             .AsNoTracking()
             .Include(x => x.CompanyProfile)
-            .Where(x => driverIdsQuery.Contains(x.Id));
+            .Where(x => !x.IsDeleted && driverIdsQuery.Contains(x.Id));
 
         if (scope.CompanyProfileId.HasValue)
             query = query.Where(x => x.CompanyProfileId == scope.CompanyProfileId.Value);
@@ -896,7 +896,8 @@ public sealed class ExcelReportService(IDbContextFactory<ApplicationDbContext> f
 
         var admin = await db.Users
             .AsNoTracking()
-            .Where(x => x.Id == currentUserId)
+            .Where(x => x.Id == currentUserId && !x.IsDeleted && x.IsActive &&
+                            x.CompanyProfile != null && x.CompanyProfile.IsActive && !x.CompanyProfile.IsDeleted)
             .Select(x => new
             {
                 x.CompanyProfileId,
