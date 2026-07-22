@@ -157,7 +157,7 @@ else
             _drivers = await (from user in db.Users.AsNoTracking()
                               join userRole in db.UserRoles.AsNoTracking() on user.Id equals userRole.UserId
                               join role in db.Roles.AsNoTracking() on userRole.RoleId equals role.Id
-                              where role.Name == "Driver" && user.IsActive && !user.IsDeleted && user.CompanyProfileId != null && user.CompanyProfile != null && user.CompanyProfile.IsActive && !user.CompanyProfile.IsDeleted
+                              where role.Name == "Driver" && user.IsActive && !user.IsDeleted && user.RegistrationStatus == "Approved" && user.CompanyProfileId != null && user.CompanyProfile != null && user.CompanyProfile.IsActive && !user.CompanyProfile.IsDeleted
                               orderby user.FullName
                               select user).ToListAsync();
 
@@ -282,7 +282,7 @@ else
         catch (DbUpdateException)
         {
             Snackbar.Add(
-                "Không thể gán xe vì tài xế vừa được gán cho một xe khác. Vui lòng tải lại dữ liệu và thử lại.",
+                "Không thể gán xe. Tài xế có thể vừa bị khóa/nghỉ việc, đã được gán xe khác hoặc không còn thuộc cùng Công ty/Văn phòng. Vui lòng tải lại dữ liệu và thử lại.",
                 Severity.Error);
         }
         catch (Exception ex)

@@ -106,6 +106,12 @@ else
                                @bind-Value="_model.IsActive"
                                Color="Color.Success"
                                Label="Tài khoản hoạt động" />
+                    @if (!_model.IsActive)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Warning">
+                            Khi lưu trạng thái khóa, tài xế không thể đăng nhập/nhận hợp đồng và xe đang gán sẽ tự động được giải phóng.
+                        </MudText>
+                    }
                 </MudItem>
 
                 <MudItem xs="12" md="6">

@@ -149,6 +149,30 @@ else
             </MudItem>
         </MudGrid>
 
+        @if (!string.IsNullOrWhiteSpace(_pendingAccountAction))
+        {
+            <MudAlert Severity="@PendingActionSeverity"
+                      Variant="Variant.Outlined"
+                      Class="mt-4">
+                <MudText Typo="Typo.subtitle2">@PendingActionTitle</MudText>
+                <MudText Typo="Typo.body2" Class="mt-1">@PendingActionMessage</MudText>
+
+                <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+                    <MudButton Variant="Variant.Text"
+                               Disabled="_changingAccountState"
+                               OnClick="CancelAccountAction">
+                        Hủy
+                    </MudButton>
+                    <MudButton Color="@PendingActionColor"
+                               Variant="Variant.Filled"
+                               Disabled="_changingAccountState"
+                               OnClick="ConfirmAccountActionAsync">
+                        @(_changingAccountState ? "Đang xử lý..." : PendingActionConfirmText)
+                    </MudButton>
+                </MudStack>
+            </MudAlert>
+        }
+
         @if (_showResetPassword)
         {
             <MudPaper Class="pa-4 mt-4" Outlined="true">
@@ -198,10 +222,39 @@ else
 
             <MudSpacer />
 
+            @if (_detail.IsActive)
+            {
+                <MudButton Color="Color.Warning"
+                           Variant="Variant.Outlined"
+                           StartIcon="@Icons.Material.Filled.Lock"
+                           Disabled="_changingAccountState"
+                           OnClick="RequestLockAccount">
+                    Khóa tạm thời
+                </MudButton>
+            }
+            else
+            {
+                <MudButton Color="Color.Success"
+                           Variant="Variant.Outlined"
+                           StartIcon="@Icons.Material.Filled.LockOpen"
+                           Disabled="_changingAccountState"
+                           OnClick="RequestUnlockAccount">
+                    Mở khóa
+                </MudButton>
+            }
+
+            <MudButton Color="Color.Error"
+                       Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Filled.PersonOff"
+                       Disabled="_changingAccountState"
+                       OnClick="RequestLeaveEmployment">
+                Nghỉ việc
+            </MudButton>
+
             <MudButton Color="Color.Warning"
                        Variant="Variant.Outlined"
                        StartIcon="@Icons.Material.Filled.LockReset"
-                       Disabled="_resettingPassword"
+                       Disabled="@(_resettingPassword || _changingAccountState)"
                        OnClick="ShowResetPassword">
                 Đặt lại mật khẩu
             </MudButton>
@@ -226,6 +279,8 @@ else
     private bool _showNewPassword;
     private string? _newPassword;
     private string? _confirmPassword;
+    private string? _pendingAccountAction;
+    private bool _changingAccountState;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -264,6 +319,100 @@ else
         finally
         {
             _loading = false;
+        }
+    }
+
+    private Severity PendingActionSeverity => _pendingAccountAction == "leave"
+        ? Severity.Error
+        : Severity.Warning;
+
+    private Color PendingActionColor => _pendingAccountAction == "leave"
+        ? Color.Error
+        : _pendingAccountAction == "unlock"
+            ? Color.Success
+            : Color.Warning;
+
+    private string PendingActionTitle => _pendingAccountAction switch
+    {
+        "lock" => "Khóa tạm thời tài khoản tài xế?",
+        "unlock" => "Mở khóa tài khoản tài xế?",
+        "leave" => "Xác nhận tài xế nghỉ việc?",
+        _ => string.Empty
+    };
+
+    private string PendingActionMessage => _pendingAccountAction switch
+    {
+        "lock" => "Tài xế sẽ không thể đăng nhập hoặc nhận hợp đồng mới. Xe đang được gán sẽ tự động chuyển về trạng thái chưa gán để giao cho tài xế khác. Hồ sơ và hợp đồng lịch sử vẫn được giữ nguyên.",
+        "unlock" => "Tài xế có thể đăng nhập lại nhưng xe cũ không được tự động gán lại. Quản trị cần chọn xe phù hợp nếu muốn giao xe trở lại.",
+        "leave" => "Tài khoản sẽ bị ẩn khỏi giao diện và không thể đăng nhập/nhận hợp đồng. Xe đang gán được giải phóng. Toàn bộ hồ sơ, chữ ký và hợp đồng lịch sử vẫn còn trong database.",
+        _ => string.Empty
+    };
+
+    private string PendingActionConfirmText => _pendingAccountAction switch
+    {
+        "lock" => "Xác nhận khóa",
+        "unlock" => "Xác nhận mở khóa",
+        "leave" => "Xác nhận nghỉ việc",
+        _ => "Xác nhận"
+    };
+
+    private void RequestLockAccount() => RequestAccountAction("lock");
+    private void RequestUnlockAccount() => RequestAccountAction("unlock");
+    private void RequestLeaveEmployment() => RequestAccountAction("leave");
+
+    private void RequestAccountAction(string action)
+    {
+        if (_changingAccountState)
+            return;
+
+        _pendingAccountAction = action;
+        _showResetPassword = false;
+    }
+
+    private void CancelAccountAction()
+    {
+        if (!_changingAccountState)
+            _pendingAccountAction = null;
+    }
+
+    private async Task ConfirmAccountActionAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_pendingAccountAction))
+            return;
+
+        try
+        {
+            _changingAccountState = true;
+
+            switch (_pendingAccountAction)
+            {
+                case "lock":
+                    await DriverAccountService.SetActiveAsync(UserId, false);
+                    Snackbar.Add("Đã khóa tài khoản và giải phóng xe đang gán.", Severity.Success);
+                    await OnParametersSetAsync();
+                    break;
+
+                case "unlock":
+                    await DriverAccountService.SetActiveAsync(UserId, true);
+                    Snackbar.Add("Đã mở khóa tài khoản. Xe cũ không được tự động gán lại.", Severity.Success);
+                    await OnParametersSetAsync();
+                    break;
+
+                case "leave":
+                    await DriverAccountService.DeleteAsync(UserId);
+                    Snackbar.Add("Đã ghi nhận tài xế nghỉ việc và giải phóng xe. Dữ liệu lịch sử vẫn được giữ trong database.", Severity.Success);
+                    Navigation.NavigateTo("/admin/driver-accounts");
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _changingAccountState = false;
+            _pendingAccountAction = null;
         }
     }
 

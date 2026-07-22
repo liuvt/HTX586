@@ -706,7 +706,7 @@ public sealed class ContractService(
 
         var driver = await db.Users
             .Include(x => x.CompanyProfile)
-            .FirstOrDefaultAsync(x => x.Id == driverId && x.IsActive && !x.IsDeleted, ct);
+            .FirstOrDefaultAsync(x => x.Id == driverId && x.IsActive && !x.IsDeleted && x.RegistrationStatus == "Approved", ct);
 
         if (driver is null || !await userManager.IsInRoleAsync(driver, "Driver"))
             return (vehicle, null, "Không tìm thấy tài xế, tài khoản đã bị khóa hoặc tài khoản không có quyền Driver.");

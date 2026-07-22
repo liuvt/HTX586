@@ -203,6 +203,39 @@ END
         await db.Database.ExecuteSqlRawAsync(@"
 IF OBJECT_ID(N'[dbo].[Vehicles]', N'U') IS NOT NULL
 BEGIN
+    -- Giải phóng xe nếu tài xế đã khóa, nghỉ việc, chưa được duyệt,
+    -- không còn Công ty/Văn phòng hoặc đã chuyển sang đơn vị khác.
+    UPDATE vehicle
+       SET vehicle.[AssignedDriverId] = NULL,
+           vehicle.[UpdatedAt] = SYSUTCDATETIME(),
+           vehicle.[UpdatedBy] = N'DB_DRIVER_STATE_RECONCILE'
+    FROM [dbo].[Vehicles] vehicle
+    LEFT JOIN [dbo].[AspNetUsers] driver ON driver.[Id] = vehicle.[AssignedDriverId]
+    LEFT JOIN [dbo].[CompanyProfiles] company ON company.[Id] = driver.[CompanyProfileId]
+    WHERE vehicle.[AssignedDriverId] IS NOT NULL
+      AND vehicle.[IsDeleted] = 0
+      AND
+      (
+          driver.[Id] IS NULL
+          OR driver.[IsActive] = 0
+          OR driver.[IsDeleted] = 1
+          OR ISNULL(driver.[RegistrationStatus], N'') <> N'Approved'
+          OR driver.[CompanyProfileId] IS NULL
+          OR company.[Id] IS NULL
+          OR company.[IsActive] = 0
+          OR company.[IsDeleted] = 1
+          OR vehicle.[CompanyProfileId] IS NULL
+          OR vehicle.[CompanyProfileId] <> driver.[CompanyProfileId]
+          OR NOT EXISTS
+          (
+              SELECT 1
+              FROM [dbo].[AspNetUserRoles] userRole
+              INNER JOIN [dbo].[AspNetRoles] role ON role.[Id] = userRole.[RoleId]
+              WHERE userRole.[UserId] = driver.[Id]
+                AND role.[Name] = N'Driver'
+          )
+      );
+
     -- Dọn dữ liệu cũ nếu một tài xế đang bị gán cho nhiều xe.
     -- Giữ xe đang hoạt động và được cập nhật gần nhất; các xe còn lại được trả về trạng thái chưa gán.
     ;WITH RankedAssignments AS
@@ -224,7 +257,8 @@ BEGIN
     )
     UPDATE vehicle
        SET vehicle.[AssignedDriverId] = NULL,
-           vehicle.[UpdatedAt] = SYSUTCDATETIME()
+           vehicle.[UpdatedAt] = SYSUTCDATETIME(),
+           vehicle.[UpdatedBy] = N'DB_DUPLICATE_ASSIGNMENT_RECONCILE'
     FROM [dbo].[Vehicles] vehicle
     INNER JOIN RankedAssignments ranked ON ranked.[Id] = vehicle.[Id]
     WHERE ranked.[AssignmentOrder] > 1;
@@ -252,6 +286,124 @@ BEGIN
     BEGIN
         DROP INDEX [IX_Vehicles_AssignedDriverId] ON [dbo].[Vehicles];
     END
+
+    -- Trigger 1: đổi trạng thái tài xế ở service hoặc trực tiếp trong DB
+    -- đều tự giải phóng xe khi tài xế khóa/nghỉ việc/chuyển đơn vị.
+    IF OBJECT_ID(N'[dbo].[TR_AspNetUsers_ReleaseAssignedVehicle]', N'TR') IS NOT NULL
+        DROP TRIGGER [dbo].[TR_AspNetUsers_ReleaseAssignedVehicle];
+
+    EXEC(N'
+CREATE TRIGGER [dbo].[TR_AspNetUsers_ReleaseAssignedVehicle]
+ON [dbo].[AspNetUsers]
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF UPDATE([IsActive]) OR UPDATE([IsDeleted]) OR UPDATE([RegistrationStatus]) OR UPDATE([CompanyProfileId])
+    BEGIN
+        UPDATE vehicle
+           SET vehicle.[AssignedDriverId] = NULL,
+               vehicle.[UpdatedAt] = SYSUTCDATETIME(),
+               vehicle.[UpdatedBy] = N''DB_DRIVER_STATE_TRIGGER''
+        FROM [dbo].[Vehicles] vehicle
+        INNER JOIN inserted driver ON driver.[Id] = vehicle.[AssignedDriverId]
+        LEFT JOIN [dbo].[CompanyProfiles] company ON company.[Id] = driver.[CompanyProfileId]
+        WHERE driver.[IsActive] = 0
+           OR driver.[IsDeleted] = 1
+           OR ISNULL(driver.[RegistrationStatus], N'''') <> N''Approved''
+           OR driver.[CompanyProfileId] IS NULL
+           OR company.[Id] IS NULL
+           OR company.[IsActive] = 0
+           OR company.[IsDeleted] = 1
+           OR vehicle.[CompanyProfileId] IS NULL
+           OR vehicle.[CompanyProfileId] <> driver.[CompanyProfileId]
+           OR NOT EXISTS
+           (
+               SELECT 1
+               FROM [dbo].[AspNetUserRoles] userRole
+               INNER JOIN [dbo].[AspNetRoles] role ON role.[Id] = userRole.[RoleId]
+               WHERE userRole.[UserId] = driver.[Id]
+                 AND role.[Name] = N''Driver''
+           );
+    END
+END');
+
+    -- Trigger 2: chặn gán xe cho tài xế không còn đủ điều kiện vận hành,
+    -- kể cả khi thao tác nằm ngoài giao diện ứng dụng.
+    IF OBJECT_ID(N'[dbo].[TR_Vehicles_ValidateAssignedDriver]', N'TR') IS NOT NULL
+        DROP TRIGGER [dbo].[TR_Vehicles_ValidateAssignedDriver];
+
+    EXEC(N'
+CREATE TRIGGER [dbo].[TR_Vehicles_ValidateAssignedDriver]
+ON [dbo].[Vehicles]
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF EXISTS
+    (
+        SELECT 1
+        FROM inserted vehicle
+        LEFT JOIN [dbo].[AspNetUsers] driver ON driver.[Id] = vehicle.[AssignedDriverId]
+        LEFT JOIN [dbo].[CompanyProfiles] company ON company.[Id] = driver.[CompanyProfileId]
+        WHERE vehicle.[AssignedDriverId] IS NOT NULL
+          AND
+          (
+              driver.[Id] IS NULL
+              OR driver.[IsActive] = 0
+              OR driver.[IsDeleted] = 1
+              OR ISNULL(driver.[RegistrationStatus], N'''') <> N''Approved''
+              OR driver.[CompanyProfileId] IS NULL
+              OR company.[Id] IS NULL
+              OR company.[IsActive] = 0
+              OR company.[IsDeleted] = 1
+              OR vehicle.[CompanyProfileId] IS NULL
+              OR vehicle.[CompanyProfileId] <> driver.[CompanyProfileId]
+              OR NOT EXISTS
+              (
+                  SELECT 1
+                  FROM [dbo].[AspNetUserRoles] userRole
+                  INNER JOIN [dbo].[AspNetRoles] role ON role.[Id] = userRole.[RoleId]
+                  WHERE userRole.[UserId] = driver.[Id]
+                    AND role.[Name] = N''Driver''
+              )
+          )
+    )
+    BEGIN
+        THROW 51001, N''Không thể gán xe cho tài xế đã khóa, nghỉ việc, chưa được duyệt hoặc khác Công ty/Văn phòng.'', 1;
+    END
+END');
+
+    -- Trigger 3: nếu quyền Driver bị gỡ trực tiếp trong Identity,
+    -- xe cũng được giải phóng để không giữ quan hệ vận hành không hợp lệ.
+    IF OBJECT_ID(N'[dbo].[TR_AspNetUserRoles_ReleaseAssignedVehicle]', N'TR') IS NOT NULL
+        DROP TRIGGER [dbo].[TR_AspNetUserRoles_ReleaseAssignedVehicle];
+
+    EXEC(N'
+CREATE TRIGGER [dbo].[TR_AspNetUserRoles_ReleaseAssignedVehicle]
+ON [dbo].[AspNetUserRoles]
+AFTER DELETE, UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE vehicle
+       SET vehicle.[AssignedDriverId] = NULL,
+           vehicle.[UpdatedAt] = SYSUTCDATETIME(),
+           vehicle.[UpdatedBy] = N''DB_DRIVER_ROLE_TRIGGER''
+    FROM [dbo].[Vehicles] vehicle
+    INNER JOIN deleted removedRole ON removedRole.[UserId] = vehicle.[AssignedDriverId]
+    WHERE NOT EXISTS
+    (
+        SELECT 1
+        FROM [dbo].[AspNetUserRoles] userRole
+        INNER JOIN [dbo].[AspNetRoles] role ON role.[Id] = userRole.[RoleId]
+        WHERE userRole.[UserId] = removedRole.[UserId]
+          AND role.[Name] = N''Driver''
+    );
+END');
 END
 ");
     }

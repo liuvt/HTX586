@@ -1,4 +1,4 @@
-﻿using HTX586CONTRACT.Domain.Common;
+using HTX586CONTRACT.Domain.Common;
 using HTX586CONTRACT.Domain.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -146,6 +146,15 @@ public static class AccountEndpoints
         {
             var status = user.RegistrationStatus?.Trim().ToLowerInvariant();
             return RedirectToLogin(status == "pending" ? "pending" : status == "rejected" ? "rejected" : "inactive", returnUrl);
+        }
+
+        // Dữ liệu nguồn phải nhất quán: một tài khoản có role Driver chỉ được
+        // đăng nhập khi yêu cầu đăng ký đã ở trạng thái Approved.
+        if (await userManager.IsInRoleAsync(user, "Driver") &&
+            !string.Equals(user.RegistrationStatus, "Approved", StringComparison.OrdinalIgnoreCase))
+        {
+            var status = user.RegistrationStatus?.Trim().ToLowerInvariant();
+            return RedirectToLogin(status == "pending" ? "pending" : "rejected", returnUrl);
         }
 
         var result =

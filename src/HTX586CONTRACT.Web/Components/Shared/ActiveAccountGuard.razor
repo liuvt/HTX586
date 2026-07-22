@@ -1,0 +1,131 @@
+@implements IAsyncDisposable
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IDbContextFactory<ApplicationDbContext> Factory
+@inject NavigationManager Navigation
+
+@code {
+    private readonly CancellationTokenSource _disposeCts = new();
+    private Task? _watchTask;
+    private bool _redirecting;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        // Chỉ điều hướng sau khi component đã interactive để tránh NavigationException
+        // trong giai đoạn static prerender của Blazor Server.
+        await ValidateCurrentAccountAsync(_disposeCts.Token);
+
+        if (!_redirecting)
+            _watchTask = WatchAccountAsync(_disposeCts.Token);
+    }
+
+    private async Task WatchAccountAsync(CancellationToken cancellationToken)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(15));
+
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cancellationToken))
+            {
+                try
+                {
+                    await ValidateCurrentAccountAsync(cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+                catch
+                {
+                    // Lỗi kết nối DB tạm thời không được làm hỏng circuit;
+                    // lần kiểm tra kế tiếp sẽ tiếp tục xác thực trạng thái.
+                }
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Component đã được giải phóng.
+        }
+    }
+
+    private async Task ValidateCurrentAccountAsync(CancellationToken cancellationToken)
+    {
+        if (_redirecting)
+            return;
+
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var principal = state.User;
+
+        if (principal.Identity?.IsAuthenticated != true)
+            return;
+
+        var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            await InvokeAsync(RedirectToInactiveLogin);
+            return;
+        }
+
+        await using var db = await Factory.CreateDbContextAsync(cancellationToken);
+
+        var userState = await db.Users.AsNoTracking()
+            .Where(x => x.Id == userId)
+            .Select(x => new
+            {
+                x.IsActive,
+                x.IsDeleted,
+                x.RegistrationStatus,
+                HasActiveCompany = x.CompanyProfileId.HasValue &&
+                                   x.CompanyProfile != null &&
+                                   x.CompanyProfile.IsActive &&
+                                   !x.CompanyProfile.IsDeleted
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var isOwner = principal.IsInRole("Owner");
+        var isDriver = principal.IsInRole("Driver");
+
+        var isValid = userState is not null &&
+                      userState.IsActive &&
+                      !userState.IsDeleted &&
+                      (isOwner || userState.HasActiveCompany) &&
+                      (!isDriver || string.Equals(
+                          userState.RegistrationStatus,
+                          "Approved",
+                          StringComparison.OrdinalIgnoreCase));
+
+        if (!isValid)
+            await InvokeAsync(RedirectToInactiveLogin);
+    }
+
+    private void RedirectToInactiveLogin()
+    {
+        if (_redirecting)
+            return;
+
+        _redirecting = true;
+        var returnUrl = Uri.EscapeDataString("/account/login?error=inactive");
+        Navigation.NavigateTo($"/account/logout?returnUrl={returnUrl}", forceLoad: true);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _disposeCts.CancelAsync();
+
+        if (_watchTask is not null)
+        {
+            try
+            {
+                await _watchTask;
+            }
+            catch (OperationCanceledException)
+            {
+                // Không cần xử lý khi component bị dispose.
+            }
+        }
+
+        _disposeCts.Dispose();
+    }
+}

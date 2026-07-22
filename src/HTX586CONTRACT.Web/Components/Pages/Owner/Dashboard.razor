@@ -284,7 +284,7 @@
                 from user in db.Users.AsNoTracking()
                 join userRole in db.UserRoles.AsNoTracking() on user.Id equals userRole.UserId
                 join role in db.Roles.AsNoTracking() on userRole.RoleId equals role.Id
-                where role.Name == "Driver" && user.IsActive && !user.IsDeleted && user.CompanyProfile != null && user.CompanyProfile.IsActive && !user.CompanyProfile.IsDeleted
+                where role.Name == "Driver" && user.IsActive && !user.IsDeleted && user.RegistrationStatus == "Approved" && user.CompanyProfile != null && user.CompanyProfile.IsActive && !user.CompanyProfile.IsDeleted
                 select user;
 
             if (_companyProfileId.HasValue)

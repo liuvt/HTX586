@@ -12,7 +12,7 @@
         <MudItem xs="12" md="8">
             <MudTextField T="string"
                           @bind-Value="_keyword"
-                          Placeholder="Tìm theo biển số hoặc họ tên chủ sở hữu..."
+                          Placeholder="Tìm biển số, chủ xe, tên hoặc mã nhân viên tài xế..."
                           Immediate="true"
                           Clearable="true"
                           Adornment="Adornment.Start"
@@ -63,7 +63,7 @@
         </MudTd>
 
         <MudTd DataLabel="Tài xế">
-            @(context.AssignedDriver?.FullName ?? "Chưa gán")
+            @DriverDisplay(context.AssignedDriver)
         </MudTd>
 
         <MudTd DataLabel="Nhãn hiệu">
@@ -127,7 +127,11 @@
     private IEnumerable<Vehicle> FilteredItems =>
         string.IsNullOrWhiteSpace(_keyword)
             ? _items
-            : _items.Where(x => Contains(x.PlateNumber) || Contains(x.OwnerName));
+            : _items.Where(x =>
+                Contains(x.PlateNumber) ||
+                Contains(x.OwnerName) ||
+                Contains(x.AssignedDriver?.FullName) ||
+                Contains(x.AssignedDriver?.EmployeeCode));
 
     protected override async Task OnInitializedAsync()
     {
@@ -182,4 +186,14 @@
     private bool Contains(string? value) =>
         !string.IsNullOrWhiteSpace(value) &&
         value.Contains(_keyword!.Trim(), StringComparison.OrdinalIgnoreCase);
+
+    private static string DriverDisplay(ApplicationUser? driver)
+    {
+        if (driver is null)
+            return "Chưa gán";
+
+        return string.IsNullOrWhiteSpace(driver.EmployeeCode)
+            ? driver.FullName
+            : $"{driver.FullName} ({driver.EmployeeCode})";
+    }
 }

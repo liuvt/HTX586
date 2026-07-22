@@ -106,12 +106,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             {
                 case ApplicationUser user:
                     user.IsActive = false;
-                    user.DriverSignatureIsActive = false;
-                    user.DriverSignatureInactiveAt ??= deletedAt;
+                    user.SecurityStamp = Guid.NewGuid().ToString("N");
                     user.UpdatedAt = deletedAt;
                     Entry(user).Property(x => x.IsActive).IsModified = true;
-                    Entry(user).Property(x => x.DriverSignatureIsActive).IsModified = true;
-                    Entry(user).Property(x => x.DriverSignatureInactiveAt).IsModified = true;
+                    Entry(user).Property(x => x.SecurityStamp).IsModified = true;
                     Entry(user).Property(x => x.UpdatedAt).IsModified = true;
                     break;
 
